@@ -1,0 +1,76 @@
+{
+  "id": "B5_8SFTkZxmXrcWOp0Gg1",
+  "name": "Call Suporte",
+  "nodes": [
+    {
+      "parameters": {"workflowInputs": {"values": [{"name": "tittle"}, {"name": "abstract"}, {"name": "sesseionID"}]}},
+      "id": "daa0e3fd-8acf-478f-9231-963214f449fd",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [16, 0]
+    },
+    {
+      "parameters": {
+        "sendTo": "fathos82@gmail.com, athos.ferreira@estudante.ifgoiano.edu.br",
+        "subject": "=Requisição de Suporte:   {{ $('When Executed by Another Workflow').item.json.tittle }}",
+        "message": "=<p>Prezada equipe de suporte,</p>\n\n<p>Uma nova solicitação de atendimento foi registrada e requer atenção imediata. O usuário já foi notificado e está aguardando.</p>\n\n<p>\n  <strong>Sessão:</strong>{{ $('When Executed by Another Workflow').item.json.sesseionID }}<br>\n  <strong>Data e Hora:</strong> {{ $now.setZone(\"America/Sao_Paulo\").toFormat(\"dd/MM/yyyy 'às' HH:mm\") }}<br>\n  <strong>Status:</strong> Aguardando atendimento\n</p>\n\n<p>\n  <strong>Resumo da Conversa</strong><br>\n  {{ $('When Executed by Another Workflow').item.json.abstract }}\n</p>\n\n<p>Solicitamos que o atendimento seja iniciado o mais breve possível a fim de garantir uma boa experiência ao usuário.</p>\n\n<p>Atenciosamente,<br>Flora 🌸</p>\n\n<p><small>Este email foi enviado automaticamente via n8n</small></p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [544, 0],
+      "id": "4ebcfb90-fde9-4960-9b21-0e640f0e975f",
+      "name": "Send a message",
+      "webhookId": "7ca244f5-b347-4093-a7c8-9891b1d638b1",
+      "credentials": {"gmailOAuth2": {"id": "oCAMcY8fUXcdmUxY", "name": "Gmail account"}}
+    },
+    {
+      "parameters": {"assignments": {"assignments": [{"id": "f9bf8dcf-cfbc-4d17-a127-7399dd081fff", "name": "response", "value": "requisição aberta! o usuário pode aguardar.", "type": "string"}]}, "options": {}},
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [752, 0],
+      "id": "f42e960e-b6b1-4606-9bf1-dc6cf2903fa4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {"__rl": true, "mode": "list", "value": "public"},
+        "table": {"__rl": true, "value": "conversation_status", "mode": "list", "cachedResultName": "conversation_status"},
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $json.sesseionID }}",
+            "status": "wait_human",
+            "expires_at": "={{ $now.toUTC().plus({ minutes: 10 }).toISO() }}"
+          },
+          "matchingColumns": ["session_id"],
+          "schema": [
+            {"id": "session_id", "displayName": "session_id", "required": true, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "status", "displayName": "status", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "updated_at", "displayName": "updated_at", "required": false, "defaultMatch": false, "display": true, "type": "dateTime", "canBeUsedToMatch": true, "removed": true},
+            {"id": "expires_at", "displayName": "expires_at", "required": false, "defaultMatch": false, "display": true, "type": "dateTime", "canBeUsedToMatch": true}
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [272, 0],
+      "id": "5845fa60-f4b8-4347-be1c-31912c329598",
+      "name": "Set Session to Wait Human",
+      "credentials": {"postgres": {"id": "PKDaOrqEkCEN3LxA", "name": "Postgres account"}}
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {"main": [[{"node": "Set Session to Wait Human", "type": "main", "index": 0}]]},
+    "Send a message": {"main": [[{"node": "Edit Fields", "type": "main", "index": 0}]]},
+    "Set Session to Wait Human": {"main": [[{"node": "Send a message", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1", "availableInMCP": false},
+  "pinData": {"When Executed by Another Workflow": [{"json": {"tittle": "Exemplo", "abstract": "Exemplo", "sesseionID": "134d7dd85f8a4cacb3db89030f677cc9"}}]},
+  "tags": [{"name": "v2.1"}]
+}

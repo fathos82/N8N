@@ -1,0 +1,17 @@
+{
+  "name": "assistente-suporte-tecnico",
+  "source_workflow": {
+    "id": "nl9lOKaIVfltHuZf",
+    "name": "assistente-suporte-tecnico (security copy)",
+    "nodes": 92,
+    "active": false,
+    "tag": "v1.2",
+    "exported_from_n8n_updatedAt": "2026-11-03T18:05:52.558Z"
+  },
+  "sub_workflows": {
+    "knowledgeBase": "9hLboYiaMlm9GKf6 (HibridySearchSuportAgent (security copy))",
+    "Call Suporte": "B5_8SFTkZxmXrcWOp0Gg1"
+  },
+  "credentials_used": ["Postgres account", "OpenAi account", "Supabase account", "Google Drive account", "Bearer Auth Mistral account"],
+  "deploy": "versionamento em arquivos apenas"
+}
