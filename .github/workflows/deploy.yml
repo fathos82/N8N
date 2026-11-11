@@ -1,0 +1,20 @@
+name: Deploy n8n (copias de teste)
+on:
+  push:
+    branches: [main]
+    paths: ["assistente-suporte-tecnico/workflows/**", "scripts/deploy.py"]
+  workflow_dispatch:
+concurrency: deploy-n8n-test
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Deploy
+        env:
+          N8N_URL: ${{ secrets.N8N_URL }}
+          N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
+          TEST_EMAIL_TO: ${{ secrets.TEST_EMAIL_TO }}
+        run: python scripts/deploy.py
