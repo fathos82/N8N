@@ -6,7 +6,6 @@ Estados: `todo` · `in_progress` · `blocked` · `done`
 
 ## Todo
 
-- [ ] [T-003 — Ingestão contextual e segurança](T-003-ingestao-contextual-enriquecida-e-seguranca.md) — `todo`
 - [ ] [T-004 — Pipeline multimodal de áudio e imagem](T-004-pipeline-multimodal-audio-e-imagem.md) — `todo`
 - [ ] [T-005 — Prompt da Flora e metadados](T-005-refinamento-prompt-flora-e-uso-de-metadados.md) — `todo`
 - [ ] [T-006 — Corrective RAG e Multi-Query](T-006-corrective-rag-e-multi-query-expansion.md) — `todo`
@@ -27,3 +26,4 @@ _Nenhum ticket._
 
 - [x] [T-001 — Enriquecer retorno da busca híbrida](T-001-enriquecer-retorno-busca-e-rerank.md) — `done`
 - [x] [T-002 — Memória persistente e role dinâmico](T-002-memoria-persistente-postgres-e-role-dinamico.md) — `done`
+- [x] [T-003 — Ingestão contextual e segurança](T-003-ingestao-contextual-enriquecida-e-seguranca.md) — `done`
