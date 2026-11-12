@@ -6,12 +6,11 @@ Estados: `todo` · `in_progress` · `blocked` · `done`
 
 ## Todo
 
-- [ ] [T-005 — Prompt da Flora e metadados](T-005-refinamento-prompt-flora-e-uso-de-metadados.md) — `todo`
 - [ ] [T-006 — Corrective RAG e Multi-Query](T-006-corrective-rag-e-multi-query-expansion.md) — `todo`
-- [ ] [T-007 — Servidor MCP de diagnóstico](T-007-practium-mcp-server-diagnostico-ativo.md) — `todo`
-- [ ] [T-008 — Estado de tutoriais passo a passo](T-008-maquina-de-estados-para-tutoriais-passo-a-passo.md) — `todo`
-- [ ] [T-009 — Metadados estruturados na ingestão](T-009-extracao-estruturada-metadados-na-ingestao.md) — `todo`
-- [ ] [T-010 — Migração code-first](T-010-migracao-agente-code-first-langgraph-mcp.md) — `todo`
+- [ ] [T-007 — Diagnóstico MCP simulado](T-007-practium-mcp-server-diagnostico-ativo.md) — `todo`
+- [ ] [T-009 — Estado de tutoriais passo a passo](T-009-maquina-de-estados-para-tutoriais-passo-a-passo.md) — `todo`
+- [ ] [T-010 — Metadados estruturados na ingestão](T-010-extracao-estruturada-metadados-na-ingestao.md) — `todo`
+- [ ] [T-012 — Migração code-first](T-012-migracao-agente-code-first-langgraph-mcp.md) — `todo`
 
 ## In progress
 
@@ -19,7 +18,7 @@ Estados: `todo` · `in_progress` · `blocked` · `done`
 
 ## Blocked
 
-_Nenhum ticket._
+- [ ] [T-008 — Integração MCP ao backend real](T-008-integracao-practium-mcp-backend-real.md) — `blocked` (aguarda acesso ao backend e conclusão do T-007)
 
 ## Done
 
@@ -27,3 +26,4 @@ _Nenhum ticket._
 - [x] [T-002 — Memória persistente e role dinâmico](T-002-memoria-persistente-postgres-e-role-dinamico.md) — `done`
 - [x] [T-003 — Ingestão contextual e segurança](T-003-ingestao-contextual-enriquecida-e-seguranca.md) — `done`
 - [x] [T-004 — Pipeline multimodal de áudio e imagem](T-004-pipeline-multimodal-audio-e-imagem.md) — `done`
+- [x] [T-005 — Prompt da Flora e metadados](T-005-refinamento-prompt-flora-e-uso-de-metadados.md) — `done`
