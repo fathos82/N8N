@@ -3,12 +3,29 @@
   "name": "HibridySearchSuportAgent (security copy)",
   "nodes": [
     {
-      "parameters": {"workflowInputs": {"values": [{"name": "query"}, {"name": "topic"}, {"name": "role"}]}},
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            },
+            {
+              "name": "topic"
+            },
+            {
+              "name": "role"
+            }
+          ]
+        }
+      },
       "id": "4b907f44-2477-4ea5-bfac-64a41bf35d1a",
       "typeVersion": 1.1,
       "name": "Start",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "position": [1696, 1008]
+      "position": [
+        1696,
+        1008
+      ]
     },
     {
       "parameters": {
@@ -17,7 +34,11 @@
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "cohereApi",
         "sendHeaders": true,
-        "headerParameters": {"parameters": [{}]},
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n\"model\": \"rerank-v4.0-fast\",\n\"query\": \"{{ $('Start').first().json.query }}\",\n\"documents\": {{ JSON.stringify($('Generate List to Reraking').item.json.documents) }},\n\"top_n\": 10\n}",
@@ -25,32 +46,58 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
-      "position": [3680, 1024],
+      "position": [
+        3680,
+        1024
+      ],
       "id": "a258c566-3324-481e-8df0-23d761b188d5",
       "name": "Reraking Cohere",
-      "credentials": {"cohereApi": {"id": "Z0bbJ1usPlSTaQIB", "name": "CohereApi account"}}
+      "credentials": {
+        "cohereApi": {
+          "id": "Z0bbJ1usPlSTaQIB",
+          "name": "CohereApi account"
+        }
+      }
     },
     {
-      "parameters": {"jsCode": "const chunks = $input.first().json.chunks;\n\nconst documents = chunks.map(c => c.content);\n\nreturn [{ json: { documents } }];"},
+      "parameters": {
+        "jsCode": "const chunks = $input.first().json.chunks;\n\nconst documents = chunks.map(c => c.content);\n\nreturn [{ json: { documents } }];"
+      },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3504, 1024],
+      "position": [
+        3504,
+        1024
+      ],
       "id": "be5ed8c3-8d86-406a-a1d3-c8aeaddef69c",
       "name": "Generate List to Reraking"
     },
     {
-      "parameters": {"jsCode": "// Why Code: Filtra, classifica por faixa de confiança, anexa metadados completos e preserva a ordem sequencial de passos (chunk_index) por documento sem perder o ranking de relevância.\nconst results = $input.first().json.results ?? [];\nconst chunks = $('Setup chunks').first().json.chunks ?? [];\nconst settings = $('Settings').first().json;\nconst minScore = settings.min_score_to_rank ?? 0.50;\nconst highConfidenceScore = settings.high_confidence_score ?? 0.75;\n\nconst approved = results\n  .filter(r => r.relevance_score >= minScore && chunks[r.index])\n  .map(r => {\n    const chunk = chunks[r.index];\n    const meta = chunk.metadata ?? {};\n    const score = Number(r.relevance_score.toFixed(4));\n    const confidence = r.relevance_score >= highConfidenceScore ? 'ALTA' : 'MEDIA';\n    const metadata = {\n      ...meta,\n      doc_id: meta.doc_id ?? chunk.doc_id ?? null,\n      file_name: meta.file_name ?? meta.fileName ?? chunk.file_name ?? null,\n      chunk_index: Number(meta.chunk_index ?? meta.chunkIndex ?? chunk.chunk_index ?? 0),\n      chunk_total: meta.chunk_total ?? meta.chunkTotal ?? chunk.chunk_total ?? null\n    };\n    return {\n      content: chunk.content,\n      score,\n      confidence,\n      metadata,\n      formatted: `[${confidence} | score: ${r.relevance_score.toFixed(2)} | doc: ${metadata.file_name ?? metadata.doc_id ?? 'unknown'} | passo: ${metadata.chunk_index + 1}/${metadata.chunk_total ?? '?'}] ${chunk.content}`\n    };\n  });\n\nif (approved.length === 0) {\n  return [{\n    json: {\n      hasResults: false,\n      sortedDocuments: []\n    }\n  }];\n}\n\nconst docMaxScore = new Map();\nfor (const item of approved) {\n  const docId = String(item.metadata.doc_id ?? '');\n  const currentMax = docMaxScore.get(docId) ?? -Infinity;\n  if (item.score > currentMax) {\n    docMaxScore.set(docId, item.score);\n  }\n}\n\nconst sortedDocuments = approved.sort((a, b) => {\n  const docA = String(a.metadata.doc_id ?? '');\n  const docB = String(b.metadata.doc_id ?? '');\n  if (docA !== docB) {\n    const maxDiff = (docMaxScore.get(docB) ?? 0) - (docMaxScore.get(docA) ?? 0);\n    if (maxDiff !== 0) return maxDiff;\n    return docA.localeCompare(docB);\n  }\n  return (a.metadata.chunk_index ?? 0) - (b.metadata.chunk_index ?? 0);\n});\n\nreturn [{\n  json: {\n    hasResults: true,\n    sortedDocuments\n  }\n}];"},
+      "parameters": {
+        "jsCode": "const results = $input.first().json.results;\nconst chunks = $('Setup chunks').first().json.chunks;\nconst minScore =  $('Settings').first().json.min_score_to_rank;\nconst sortedDocuments = results\n  .filter(r => r.relevance_score >= minScore)\n  .map(r => `[${r.relevance_score.toFixed(2)}] ${chunks[r.index].content}`);\n\nreturn [{ json: { sortedDocuments } }];"
+      },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3840, 1024],
+      "position": [
+        3840,
+        1024
+      ],
       "id": "9fb3560b-b544-440f-be5b-3e3ae0fe6bad",
       "name": "Return Sorted Itens"
     },
     {
-      "parameters": {"content": "## Hibirdy Search", "height": 288, "width": 544, "color": 6},
+      "parameters": {
+        "content": "## Hibirdy Search",
+        "height": 288,
+        "width": 544,
+        "color": 6
+      },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [2032, 928],
+      "position": [
+        2032,
+        928
+      ],
       "id": "1255455e-4c18-4141-95c4-e7f69cd6e29f",
       "name": "Sticky Note3"
     },
@@ -61,7 +108,14 @@
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "supabaseApi",
         "sendHeaders": true,
-        "headerParameters": {"parameters": [{"name": "apikey", "value": "sb_publishable_z6k3AuVDJVlg4VfQSy14Qw_3ckCahFb"}]},
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_publishable_z6k3AuVDJVlg4VfQSy14Qw_3ckCahFb"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"query_text\": \"{{ $('Start').item.json.query }}\",\n  \"query_embedding\": [{{ $json.data[0].embedding }}],\n  \"match_count\": {{ $('Settings').item.json.limit }},\n  \"filter\": {\n    \"topic\": {{ $('Start').item.json.topic ? '\"' + $('Start').item.json.topic + '\"' : 'null' }},\n    \"allowedRoles\":[{{ '\"' + $('Start').item.json.role +'\"'}}]\n  }\n}",
@@ -69,24 +123,47 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
-      "position": [2352, 1008],
+      "position": [
+        2352,
+        1008
+      ],
       "id": "7e2df1ae-50b7-41e4-bf6b-65f01c377ba8",
       "name": "Trigger Hibirdy Search",
-      "credentials": {"supabaseApi": {"id": "1dPY4JxbmmYvYtmg", "name": "Supabase account"}}
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
     },
     {
-      "parameters": {"content": "## Expand Context", "height": 304, "width": 608, "color": 4},
+      "parameters": {
+        "content": "## Expand Context",
+        "height": 304,
+        "width": 608,
+        "color": 4
+      },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [2672, 928],
+      "position": [
+        2672,
+        928
+      ],
       "id": "da759f38-45bd-4735-a8a4-5ee57493fe16",
       "name": "Sticky Note4"
     },
     {
-      "parameters": {"content": "## Rerank Documentes - Cohere", "height": 304, "width": 576},
+      "parameters": {
+        "content": "## Rerank Documentes - Cohere",
+        "height": 304,
+        "width": 576
+      },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [3456, 928],
+      "position": [
+        3456,
+        928
+      ],
       "id": "c6d68800-eb01-404f-9dc2-f3313ed9db10",
       "name": "Sticky Note5"
     },
@@ -97,51 +174,114 @@
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "supabaseApi",
         "sendHeaders": true,
-        "headerParameters": {"parameters": [{"name": "apikey", "value": "sb_publishable_z6k3AuVDJVlg4VfQSy14Qw_3ckCahFb"}]},
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_publishable_z6k3AuVDJVlg4VfQSy14Qw_3ckCahFb"
+            }
+          ]
+        },
         "sendBody": true,
-        "bodyParameters": {"parameters": [{"name": "p_pairs", "value": "={{ $json.toFetch }}"}, {"name": "p_window", "value": "={{$('Settings').first().json.window }}"}]},
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "p_pairs",
+              "value": "={{ $json.toFetch }}"
+            },
+            {
+              "name": "p_window",
+              "value": "={{$('Settings').first().json.window }}"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
-      "position": [3072, 944],
+      "position": [
+        3072,
+        944
+      ],
       "id": "17a15c88-ffc8-41c1-9378-1f9449d7d18a",
       "name": "Expand Context",
-      "credentials": {"supabaseApi": {"id": "1dPY4JxbmmYvYtmg", "name": "Supabase account"}}
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
-            {"id": "d9926ace-7bbc-42e7-a63e-a36f5a52dd7a", "name": "limit", "value": 10, "type": "number"},
-            {"id": "2fa30f6c-f782-4dc6-9f05-a9ea8dca645d", "name": "top_k", "value": 7, "type": "number"},
-            {"id": "4d6ebbc8-19c1-4df5-afd9-4d898fed87e5", "name": "window", "value": 2, "type": "number"},
-            {"id": "df6f4a9b-9d2a-443e-adb7-6fe259bc06e9", "name": "min_score_to_expand", "value": 0.025, "type": "number"},
-            {"id": "2f3fa82f-eb91-4fcc-9c6a-f36eef2bd76d", "name": "min_score_to_rank", "value": 0.5, "type": "number"},
-            {"id": "8b63a910-51d2-46c9-9b41-7e58c7d4109f", "name": "high_confidence_score", "value": 0.75, "type": "number"}
+            {
+              "id": "d9926ace-7bbc-42e7-a63e-a36f5a52dd7a",
+              "name": "limit",
+              "value": 10,
+              "type": "number"
+            },
+            {
+              "id": "2fa30f6c-f782-4dc6-9f05-a9ea8dca645d",
+              "name": "top_k",
+              "value": 7,
+              "type": "number"
+            },
+            {
+              "id": "4d6ebbc8-19c1-4df5-afd9-4d898fed87e5",
+              "name": "window",
+              "value": 1,
+              "type": "number"
+            },
+            {
+              "id": "df6f4a9b-9d2a-443e-adb7-6fe259bc06e9",
+              "name": "min_score_to_expand",
+              "value": 0.028,
+              "type": "number"
+            },
+            {
+              "id": "2f3fa82f-eb91-4fcc-9c6a-f36eef2bd76d",
+              "name": "min_score_to_rank",
+              "value": 0.79,
+              "type": "number"
+            }
           ]
         },
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1888, 1008],
+      "position": [
+        1888,
+        1008
+      ],
       "id": "3918ce21-9ab1-445c-90b4-527392b0b46f",
       "name": "Settings"
     },
     {
-      "parameters": {"jsCode": "const items = $input.all();\nconst settings = $('Settings').first().json;\nconst topK = settings.top_k ?? 5;\nconst minScore = settings.min_score_to_expand ?? 0;\nconst hits = items.map(item => item.json);\n\nconst seen = new Set();\nconst toFetch = hits\n  .sort((a, b) => (b.rrf_score ?? 0) - (a.rrf_score ?? 0))\n  .filter(hit => (hit.rrf_score ?? 0) >= minScore)\n  .slice(0, topK)\n  .map(hit => ({\n    doc_id: hit.metadata.doc_id,\n    chunk_index: hit.metadata.chunk_index,\n    rrf_score: hit.rrf_score ?? 0\n  }))\n  .filter(f => {\n    const key = `${f.doc_id}_${f.chunk_index}`;\n    if (seen.has(key)) return false;\n    seen.add(key);\n    return true;\n  });\n\nreturn [{ json: { hits, toFetch } }];"},
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst settings = $('Settings').first().json;\nconst topK = settings.top_k ?? 5;\nconst minScore = settings.min_score_to_expand ?? 0;\nconst hits = items.map(item => item.json);\n\nconst seen = new Set();\nconst toFetch = hits\n  .sort((a, b) => (b.rrf_score ?? 0) - (a.rrf_score ?? 0))\n  .filter(hit => (hit.rrf_score ?? 0) >= minScore)\n  .slice(0, topK)\n  .map(hit => ({\n    doc_id: hit.metadata.doc_id,\n    chunk_index: hit.metadata.chunk_index,\n    rrf_score: hit.rrf_score ?? 0\n  }))\n  .filter(f => {\n    const key = `${f.doc_id}_${f.chunk_index}`;\n    if (seen.has(key)) return false;\n    seen.add(key);\n    return true;\n  });\n\nreturn [{ json: { hits, toFetch } }];"
+      },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2704, 1008],
+      "position": [
+        2704,
+        1008
+      ],
       "id": "43432bd3-131d-405a-babd-28ab895edb0e",
       "name": "Generate List do Context Expansion"
     },
     {
-      "parameters": {"jsCode": "// Why Code: Deduplica chunks vindos da busca híbrida e da expansão de janela e ordena posicionalmente por doc_id e chunk_index.\nconst hits = $('Generate List do Context Expansion').first().json.hits ?? [];\nconst expanded = $input.all().map(i => i.json).filter(c => c && (c.content || c.metadata));\n\nconst all = [...hits, ...expanded];\n\nconst seen = new Set();\nconst chunks = all\n  .filter(c => {\n    const docId = c.metadata?.doc_id ?? c.doc_id;\n    const chunkIndex = c.metadata?.chunk_index ?? c.chunk_index;\n    if (docId === undefined && chunkIndex === undefined) return false;\n    const key = `${docId}_${chunkIndex}`;\n    if (seen.has(key)) return false;\n    seen.add(key);\n    return true;\n  })\n  .sort((a, b) => {\n    const docA = String(a.metadata?.doc_id ?? a.doc_id ?? '');\n    const docB = String(b.metadata?.doc_id ?? b.doc_id ?? '');\n    if (docA !== docB) return docA.localeCompare(docB);\n    const idxA = Number(a.metadata?.chunk_index ?? a.chunk_index ?? 0);\n    const idxB = Number(b.metadata?.chunk_index ?? b.chunk_index ?? 0);\n    return idxA - idxB;\n  });\n\nreturn [{ json: { chunks } }];"},
+      "parameters": {
+        "jsCode": "const hits = $('Generate List do Context Expansion').first().json.hits ?? [];\nconst expanded = $input.all().map(i => i.json);\n\nconst all = [...hits, ...expanded];\n\nconst seen = new Set();\nconst chunks = all.filter(c => {\n  const key = `${c.metadata?.doc_id}_${c.metadata?.chunk_index}`;\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\n\nreturn [{ json: { chunks } }];"
+      },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3312, 1024],
+      "position": [
+        3312,
+        1024
+      ],
       "id": "73325e1a-c3c8-4195-8f16-17b3e913d62a",
       "name": "Setup chunks"
     },
@@ -152,23 +292,65 @@
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "openAiApi",
         "sendBody": true,
-        "bodyParameters": {"parameters": [{"name": "input", "value": "={{ $('Start').item.json.query }}"}, {"name": "model", "value": "text-embedding-3-small"}]},
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "={{ $('Start').item.json.query }}"
+            },
+            {
+              "name": "model",
+              "value": "text-embedding-3-small"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
-      "position": [2112, 1008],
+      "position": [
+        2112,
+        1008
+      ],
       "id": "2d63c596-3c67-4e99-a582-0ccf5c025e13",
       "name": "Generate Embbeding for Query",
-      "credentials": {"openAiApi": {"id": "0LtvSfR1BUp6aWpc", "name": "OpenAi account"}}
+      "credentials": {
+        "openAiApi": {
+          "id": "0LtvSfR1BUp6aWpc",
+          "name": "OpenAi account"
+        }
+      }
     },
     {
       "parameters": {
         "conditions": {
-          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
           "conditions": [
-            {"id": "d688125b-da7e-475f-b89f-6c31d80590d8", "leftValue": "={{ $json }}", "rightValue": "", "operator": {"type": "object", "operation": "notEmpty", "singleValue": true}},
-            {"id": "dc9aa10a-de0c-47ca-a6e0-ed7e03b1c3d2", "leftValue": "={{ $json.toFetch }}", "rightValue": "", "operator": {"type": "array", "operation": "notEmpty", "singleValue": true}}
+            {
+              "id": "d688125b-da7e-475f-b89f-6c31d80590d8",
+              "leftValue": "={{ $json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "dc9aa10a-de0c-47ca-a6e0-ed7e03b1c3d2",
+              "leftValue": "={{ $json.toFetch }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
           ],
           "combinator": "and"
         },
@@ -176,24 +358,151 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [2896, 1008],
+      "position": [
+        2896,
+        1008
+      ],
       "id": "7395aa8b-4654-46aa-86a0-d99064053793",
       "name": "VerifyIfCanExpandes"
     }
   ],
   "connections": {
-    "Start": {"main": [[{"node": "Settings", "type": "main", "index": 0}]]},
-    "Reraking Cohere": {"main": [[{"node": "Return Sorted Itens", "type": "main", "index": 0}]]},
-    "Generate List to Reraking": {"main": [[{"node": "Reraking Cohere", "type": "main", "index": 0}]]},
-    "Trigger Hibirdy Search": {"main": [[{"node": "Generate List do Context Expansion", "type": "main", "index": 0}]]},
-    "Expand Context": {"main": [[{"node": "Setup chunks", "type": "main", "index": 0}]]},
-    "Settings": {"main": [[{"node": "Generate Embbeding for Query", "type": "main", "index": 0}]]},
-    "Generate List do Context Expansion": {"main": [[{"node": "VerifyIfCanExpandes", "type": "main", "index": 0}]]},
-    "Setup chunks": {"main": [[{"node": "Generate List to Reraking", "type": "main", "index": 0}]]},
-    "Generate Embbeding for Query": {"main": [[{"node": "Trigger Hibirdy Search", "type": "main", "index": 0}]]},
-    "VerifyIfCanExpandes": {"main": [[{"node": "Expand Context", "type": "main", "index": 0}], [{"node": "Setup chunks", "type": "main", "index": 0}]]}
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reraking Cohere": {
+      "main": [
+        [
+          {
+            "node": "Return Sorted Itens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate List to Reraking": {
+      "main": [
+        [
+          {
+            "node": "Reraking Cohere",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Hibirdy Search": {
+      "main": [
+        [
+          {
+            "node": "Generate List do Context Expansion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expand Context": {
+      "main": [
+        [
+          {
+            "node": "Setup chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Generate Embbeding for Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate List do Context Expansion": {
+      "main": [
+        [
+          {
+            "node": "VerifyIfCanExpandes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup chunks": {
+      "main": [
+        [
+          {
+            "node": "Generate List to Reraking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Embbeding for Query": {
+      "main": [
+        [
+          {
+            "node": "Trigger Hibirdy Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VerifyIfCanExpandes": {
+      "main": [
+        [
+          {
+            "node": "Expand Context",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Setup chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": {"executionOrder": "v1", "availableInMCP": false},
-  "pinData": {"Start": [{"json": {"query": "Como cadastrar uma análise de solo?", "topic": null, "role": "consultor_colaborador_business"}}]},
-  "tags": [{"name": "v2.0"}]
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "query": "Como cadastrar uma análise de solo?",
+          "topic": null,
+          "role": "consultor_colaborador_business"
+        }
+      }
+    ]
+  },
+  "tags": [
+    {
+      "name": "v2.0"
+    }
+  ]
 }
