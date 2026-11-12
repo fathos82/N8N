@@ -1,0 +1,196 @@
+{
+  "_meta": {
+    "description": "Fixtures sintéticas do servidor MCP de simulação do Practium (T-007). Nenhum dado corresponde a pessoa real.",
+    "contract_version": "T-007/0.1",
+    "mode": "simulated",
+    "notes": [
+      "A sessão MCP é identificada por um token de URL controlado pelo servidor; o cliente não escolhe o usuário.",
+      "As fixtures são lidas apenas em memória; não há banco de dados nem chamadas ao backend do Practium.",
+      "O campo user_id das tools existe somente para testar rejeição de identidade divergente e não deve ser usado pela agente."
+    ]
+  },
+  "sessions": {
+    "sim-session-alpha": {
+      "label": "Caso 1 - análise de solo ausente",
+      "user_id": "user_ana_ficticia"
+    },
+    "sim-session-beta": {
+      "label": "Caso 2 - erro de validação de fósforo",
+      "user_id": "user_bruno_ficticio"
+    },
+    "sim-session-gamma": {
+      "label": "Demonstração n8n - dependência ausente e erro de validação",
+      "user_id": "user_carla_ficticia"
+    },
+    "sim-session-degraded": {
+      "label": "Caso de indisponibilidade simulada",
+      "user_id": "user_diego_ficticio",
+      "simulate_failure": true
+    }
+  },
+  "users": {
+    "user_ana_ficticia": {
+      "display_name": "Ana Fictícia",
+      "role": "gestor_business",
+      "role_label": "Gestor de propriedade (business)",
+      "plan": "business",
+      "active_permissions": [
+        "property:read",
+        "field:read",
+        "soil_analysis:read",
+        "fertilization:read"
+      ],
+      "onboarding": [
+        {
+          "key": "property",
+          "label": "Propriedade/Fazenda cadastrada",
+          "status": "present",
+          "detail": "Fazenda fictícia 'Fazenda Horizonte' cadastrada."
+        },
+        {
+          "key": "field",
+          "label": "Talhão cadastrado na fazenda",
+          "status": "present",
+          "detail": "Talhão fictício 'Talhão Norte' cadastrado."
+        },
+        {
+          "key": "soil_analysis",
+          "label": "Análise de solo vinculada ao talhão",
+          "status": "missing",
+          "detail": "Não há análise de solo vinculada ao Talhão Norte.",
+          "guidance": "Cadastre uma análise de solo para o Talhão Norte antes de gerar a recomendação de adubação."
+        },
+        {
+          "key": "fertilization_recommendation",
+          "label": "Recomendação de adubação gerada",
+          "status": "blocked",
+          "depends_on": "soil_analysis",
+          "detail": "A recomendação depende da análise de solo ausente."
+        }
+      ],
+      "validation_errors": []
+    },
+    "user_bruno_ficticio": {
+      "display_name": "Bruno Fictício",
+      "role": "consultor_colaborador_business",
+      "role_label": "Consultor colaborador (business)",
+      "plan": "business",
+      "active_permissions": [
+        "property:read",
+        "field:read",
+        "soil_analysis:read",
+        "soil_analysis:write",
+        "fertilization:read"
+      ],
+      "onboarding": [
+        {
+          "key": "property",
+          "label": "Propriedade/Fazenda cadastrada",
+          "status": "present",
+          "detail": "Fazenda fictícia 'Sítio Boa Esperança' cadastrada."
+        },
+        {
+          "key": "field",
+          "label": "Talhão cadastrado na fazenda",
+          "status": "present",
+          "detail": "Talhão fictício 'Talhão Sul' cadastrado."
+        },
+        {
+          "key": "soil_analysis",
+          "label": "Análise de solo vinculada ao talhão",
+          "status": "present",
+          "detail": "Análise de solo fictícia de 10/10/2026 vinculada ao Talhão Sul."
+        },
+        {
+          "key": "fertilization_recommendation",
+          "label": "Recomendação de adubação gerada",
+          "status": "present",
+          "detail": "Recomendação fictícia gerada para o Talhão Sul."
+        }
+      ],
+      "validation_errors": [
+        {
+          "id": "err-beta-001",
+          "occurred_minutes_ago": 12,
+          "source": "frontend",
+          "screen": "/analise-solo/novo",
+          "field": "Fósforo (P)",
+          "message": "Campo 'Fósforo (P)' deve ser numérico positivo.",
+          "severity": "error"
+        },
+        {
+          "id": "err-beta-002",
+          "occurred_minutes_ago": 95,
+          "source": "api",
+          "screen": "/analise-solo/novo",
+          "field": "Talhão",
+          "message": "Talhão informado não pertence à propriedade selecionada.",
+          "severity": "error"
+        }
+      ]
+    },
+    "user_carla_ficticia": {
+      "display_name": "Carla Fictícia (demonstração)",
+      "role": "gestor_profissional",
+      "role_label": "Gestora de propriedade (profissional)",
+      "plan": "profissional",
+      "active_permissions": [
+        "property:read",
+        "field:read",
+        "soil_analysis:read",
+        "soil_analysis:write"
+      ],
+      "onboarding": [
+        {
+          "key": "property",
+          "label": "Propriedade/Fazenda cadastrada",
+          "status": "present",
+          "detail": "Fazenda fictícia 'Fazenda Demo' cadastrada."
+        },
+        {
+          "key": "field",
+          "label": "Talhão cadastrado na fazenda",
+          "status": "present",
+          "detail": "Talhão fictício 'Talhão Demo' cadastrado."
+        },
+        {
+          "key": "soil_analysis",
+          "label": "Análise de solo vinculada ao talhão",
+          "status": "missing",
+          "detail": "Não há análise de solo vinculada ao Talhão Demo.",
+          "guidance": "Cadastre uma análise de solo para o Talhão Demo antes de gerar a recomendação de adubação."
+        },
+        {
+          "key": "fertilization_recommendation",
+          "label": "Recomendação de adubação gerada",
+          "status": "blocked",
+          "depends_on": "soil_analysis",
+          "detail": "A recomendação depende da análise de solo ausente."
+        }
+      ],
+      "validation_errors": [
+        {
+          "id": "err-gamma-001",
+          "occurred_minutes_ago": 5,
+          "source": "frontend",
+          "screen": "/analise-solo/novo",
+          "field": "Fósforo (P)",
+          "message": "Campo 'Fósforo (P)' deve ser numérico positivo.",
+          "severity": "error"
+        }
+      ]
+    },
+    "user_diego_ficticio": {
+      "display_name": "Diego Fictício (indisponibilidade)",
+      "role": "gestor_business",
+      "role_label": "Gestor de propriedade (business)",
+      "plan": "business",
+      "active_permissions": [
+        "property:read",
+        "field:read"
+      ],
+      "onboarding": [],
+      "validation_errors": []
+    }
+  }
+}

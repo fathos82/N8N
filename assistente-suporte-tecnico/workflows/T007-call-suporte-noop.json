@@ -1,0 +1,89 @@
+{
+  "id": "tCZfdm7LCk2MkarX",
+  "name": "[T-007] Call Suporte (no-op)",
+  "nodes": [
+    {
+      "id": "t007-cs-trigger",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "tittle",
+              "type": "string"
+            },
+            {
+              "name": "abstract",
+              "type": "string"
+            },
+            {
+              "name": "sesseionID",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "t007-cs-set",
+      "name": "Simulated Support Ticket",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "t007-cs-a1",
+              "name": "status",
+              "value": "simulated_noop",
+              "type": "string"
+            },
+            {
+              "id": "t007-cs-a2",
+              "name": "simulated",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "t007-cs-a3",
+              "name": "message",
+              "value": "SIMULAÇÃO T-007: nenhum chamado foi registrado no Postgres e nenhum e-mail foi enviado.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Simulated Support Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "America/Sao_Paulo",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "tags": [],
+  "pinData": null
+}

@@ -1,0 +1,20 @@
+{
+  "name": "practium-support-mcp-sim",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Servidor MCP local de simulação do diagnóstico ativo da Flora (T-007). Dados fictícios, somente leitura.",
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "smoke": "node scripts/smoke.mjs",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^3.25.76"
+  }
+}
