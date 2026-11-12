@@ -1,0 +1,112 @@
+{
+  "id": "PyjD9HpRTk3M3N2G",
+  "name": "[T-007] knowledgeBase simulada",
+  "nodes": [
+    {
+      "id": "t007-kb-trigger",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query",
+              "type": "string"
+            },
+            {
+              "name": "topic",
+              "type": "string"
+            },
+            {
+              "name": "role",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "t007-kb-set",
+      "name": "Simulated Knowledge Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "t007-kb-a1",
+              "name": "hasResults",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "t007-kb-a2",
+              "name": "simulated",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "t007-kb-a3",
+              "name": "sortedDocuments",
+              "value": [
+                {
+                  "confidence": "ALTA",
+                  "score": 0.98,
+                  "content": "[SIMULAÇÃO T-007] Procedimento fictício para cadastrar análise de solo: Passo 1 de 3: abra a tela Análise de Solo e clique em Nova análise. Passo 2 de 3: selecione a fazenda e o talhão e informe os valores da análise. Passo 3 de 3: salve a análise antes de gerar a recomendação de adubação.",
+                  "metadata": {
+                    "router": "/analise-solo/novo",
+                    "simulated": true,
+                    "source": "fixture T-007"
+                  }
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "id": "t007-kb-a4",
+              "name": "message",
+              "value": "Retorno documental SIMULADO da cópia T-007. Não é a base real do Practium.",
+              "type": "string"
+            },
+            {
+              "id": "t007-kb-a5",
+              "name": "query",
+              "value": "={{ $json.query }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Simulated Knowledge Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "America/Sao_Paulo",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "tags": [],
+  "pinData": null
+}

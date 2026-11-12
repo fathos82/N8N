@@ -90,8 +90,13 @@ ambiente do n8n, construída a partir desta branch do repositório público:
 - Build path/contexto: `assistente-suporte-tecnico/practium-mcp-server`
 - Dockerfile: `Dockerfile`
 - Porta: `3907`
-- Endpoint público: `https://practium-mcp-sim-177-104-179-163.traefik.me`
-- Endpoint MCP para o n8n: `https://practium-mcp-sim-177-104-179-163.traefik.me/mcp/sim-session-gamma`
+- App Dokploy: `RYq2cdKcK2_o8IxAfDnkJ` (`practium-mcp-sim-vg0tti`)
+- Endpoint público: `http://practium-mcp-sim-177-104-179-163.traefik.me`
+- Endpoint MCP para o n8n: `http://practium-mcp-sim-177-104-179-163.traefik.me/mcp/sim-session-gamma`
+
+> O deploy de referência usa HTTP simples no `*.traefik.me` porque só transporta fixtures
+> sintéticas durante o teste. Para qualquer ambiente com dados reais, use TLS e autenticação
+> real (T-008).
 
 O domínio `*.traefik.me` resolve para o IP público da VPS e serve apenas para o ambiente de
 teste. Para reproduzir em outro ambiente, troque o host pelo domínio/IP da sua instalação e
@@ -108,7 +113,7 @@ No n8n, use o nó **MCP Client Tool** (`@n8n/n8n-nodes-langchain.mcpClientTool`,
 
 | Campo | Valor |
 | --- | --- |
-| Endpoint | `https://<host>/mcp/sim-session-gamma` |
+| Endpoint | `http://<host>/mcp/sim-session-gamma` (use TLS em ambiente real) |
 | Server Transport | `HTTP Streamable` |
 | Authentication | `None` (a identidade vem do token de sessão na URL) |
 | Tools to Include | `All` (as três tools são somente leitura) |
@@ -125,6 +130,21 @@ A cópia isolada do workflow é `[T-007] assistente-suporte-tecnico (MCP simulad
 Invoque pelo chat do n8n com o token `sim-session-gamma` para ver ao mesmo tempo a
 dependência ausente e o erro de validação. Para trocar o cenário, troque o token na URL do
 nó MCP (a identidade é definida pelo servidor, não pela agente).
+
+### Workflows n8n criados no T-007
+
+| Workflow | ID n8n | Estado | Papel |
+| --- | --- | --- | --- |
+| `[T-007] assistente-suporte-tecnico (MCP simulado)` | `GU2dSb6BGJlGJQRT` | **inativo** | cópia isolada da Flora com MCP |
+| `[T-007] knowledgeBase simulada` | `PyjD9HpRTk3M3N2G` | ativo (sub-workflow) | retorno documental fictício |
+| `[T-007] Call Suporte (no-op)` | `tCZfdm7LCk2MkarX` | ativo (sub-workflow) | escalonamento sem Postgres/Gmail |
+
+Os dois sub-workflows precisam estar ativos para o nó `toolWorkflow` conseguir executá-los;
+eles têm apenas trigger de sub-workflow e um nó Set, sem acesso externo. A cópia principal
+fica **inativa** após os testes. Os exports sanitizados estão em
+`workflows/T007-assistente-suporte-tecnico-mcp-simulado.json`,
+`workflows/T007-knowledge-base-simulada.json` e `workflows/T007-call-suporte-noop.json`
+(sem `shared`, `staticData` ou dados de conta).
 
 ## 6. Identidade simulada e limites
 
@@ -279,8 +299,25 @@ Smoke manual contra um servidor em execução:
 ```bash
 npm run smoke
 # ou
-MCP_BASE_URL=https://<host>/mcp/sim-session-gamma npm run smoke
+MCP_BASE_URL=http://<host>/mcp/sim-session-gamma npm run smoke
 ```
+
+### Evidências executadas em 12/11/2026
+
+- `npm test`: 3 testes passando, 0 falhas.
+- `GET /healthz` no endpoint público: `{"status":"ok","mode":"simulated","contract_version":"T-007/0.1","sessions_configured":4,...}`.
+- `npm run smoke` contra o endpoint público: descoberta das três tools e respostas simuladas
+  de perfil, dependência ausente e erro de validação.
+- Chat n8n (workflow `GU2dSb6BGJlGJQRT`):
+  - dependência ausente: execução `37681` chamou `check_onboarding_dependencies` e respondeu que
+    falta a análise de solo, marcando os dados como simulados;
+  - erro de validação: execução `37677` chamou `get_recent_validation_errors` e devolveu o
+    campo `Fósforo (P)` com a mensagem exata;
+  - falha simulada: com `sim-session-degraded`, a Flora respondeu que a consulta estava
+    indisponível e não inventou diagnóstico (endpoint restaurado para `gamma` depois);
+  - `Call Suporte` no-op: execução `37686` retornou `status: simulated_noop` e nenhum e-mail
+    foi enviado.
+- Nenhum workflow de produção foi modificado ou ativado.
 
 ## 10. Isolamento de dados, credenciais e ações externas
 
