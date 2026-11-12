@@ -1,0 +1,28 @@
+# Estado do compose do n8n ANTES do upgrade 2.4.7 -> 2.47.5
+# Capturado em 2026-11-12 (composeId R_u-1prKe-_bqaal25oth)
+version: "3.8"
+services:
+  n8n:
+    image: n8nio/n8n
+    restart: always
+    ports:
+      - 5678:5678
+    environment:
+      - N8N_HOST=n8n.rvcarbon.com.br
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.rvcarbon.com.br/
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - N8N_SECURE_COOKIE=false
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=n8n_db
+      - DB_POSTGRESDB_HOST=practium-n8ndb-ug7hmq
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_PASSWORD=<REDACTED>
+      - N8N_COMMUNITY_PACKAGES_ENABLED=true
+    volumes:
+      - n8n_data:/home/node/.n8n
+volumes:
+  n8n_data: null

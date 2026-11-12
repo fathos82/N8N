@@ -4,3 +4,6 @@ __pycache__/
 .env*
 main.py
 !.env.example
+
+# backups locais que podem conter .env/segredos
+assistente-suporte-tecnico/backups/*.tar.gz

@@ -1,0 +1,3355 @@
+{
+  "name": "assistente-suporte-tecnico",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "availableInChat": true,
+        "agentName": "Flora",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        4768,
+        1840
+      ],
+      "id": "e7ff1cd2-91c2-4e60-8f04-8aaaa850cce3",
+      "name": "When chat message received",
+      "webhookId": "72ea20b5-aa6a-4f46-915b-b4903567ad1c"
+    },
+    {
+      "parameters": {
+        "content": "## Agent\n",
+        "height": 480,
+        "width": 944,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        5984,
+        2256
+      ],
+      "id": "34857f59-7506-49c9-ae08-e52fc1a6bcae",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 3
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        6256,
+        2432
+      ],
+      "id": "0fc6ae54-9299-491a-84f4-ffc887821d1b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a note \n* **Ajustar quantidade de mensagens em memoria**",
+        "height": 80,
+        "width": 150,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1856,
+        1456
+      ],
+      "id": "6d912f23-fbc0-460a-aa27-b4e56f43a629",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "description": "Use the tool to think about something. It will not obtain new information or change the database, but just append the thought to the log. Use it when complex reasoning or some cache memory is needed. Only reason based on data explicitly returned by tools. If no data was returned, the only valid conclusion is to request more information from the user or escalate to `Call Suporte`."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        6288,
+        2576
+      ],
+      "id": "34fe12e2-327a-4e43-9d03-66a760d9e86a",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2792afb9-9d88-403c-81ca-7bc8161add44",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5648,
+        1840
+      ],
+      "id": "d5072745-c543-4fa5-ab2a-a31d07ce2cc5",
+      "name": "conversationExists"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "conversation_status",
+          "mode": "list",
+          "cachedResultName": "conversation_status"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $('extractSessionId').item.json.sessionID }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5872,
+        1984
+      ],
+      "id": "96109b59-e3c3-4870-b91d-fe6e557b7b54",
+      "name": "add_conversation_id",
+      "credentials": {
+        "postgres": {
+          "id": "PKDaOrqEkCEN3LxA",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "22502e3a-1c6e-4869-82cb-89e367c6a805",
+              "name": "chatInput",
+              "value": "={{ $json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "5589a893-4956-4d92-8d18-a3c764960313",
+              "name": "sessionID",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "6b6b9666-7378-4546-8abb-afce18459587",
+              "name": "",
+              "value": "={{ $json.role }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5280,
+        1840
+      ],
+      "id": "c61f3650-95e4-40d7-af06-9bb32e34f58b",
+      "name": "extractSessionId"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT status,  expires_at\nFROM conversation_status \nWHERE session_id = '{{ $json.sessionID }}';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5472,
+        1840
+      ],
+      "id": "0f77210f-8c6f-4ac5-86ba-5afb604b6740",
+      "name": "getConverationStatus",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "PKDaOrqEkCEN3LxA",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "270f7e42-7846-4a00-9d3c-00090b12aef7",
+              "name": "chatInput",
+              "value": "={{ $('extractSessionId').item.json.chatInput }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6720,
+        2048
+      ],
+      "id": "1ccfaa5f-ff7f-4aaf-ad59-274a45d8eeb8",
+      "name": "Extract Query"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9822fac6-3208-4a34-b803-0221dbe01767",
+              "name": "output",
+              "value": "=Você está na fila para atendimento com um de nossos atendentes.\nEm alguns minutos, nossa equipe de suporte falará com você por aqui mesmo. Obrigado pela sua paciência! 😊",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6592,
+        1696
+      ],
+      "id": "97e3d778-b1d9-41ba-8e1c-8a7322de054e",
+      "name": "Set Wait Human Response"
+    },
+    {
+      "parameters": {
+        "description": "Chamar esta TOOL sempre que o necessitar de dados para responder alguma dúvida do usúario sobre: \n- Navegação\n- Cadastro de Dados\n- Correção de erros\n- Dúvidas da Plataforma",
+        "workflowId": {
+          "__rl": true,
+          "value": "LyeROMlZEGlZXEEN",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/LyeROMlZEGlZXEEN",
+          "cachedResultName": "HibridySearchSuportAgent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', `Formule perguntas para expandir a capacidade de busca de informações, de acordo com as intenções do usuária, e contexto passado, utilze palavras chaves.`, 'string') }}",
+            "role": "={{ $('Setup Role').item.json.role }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        6400,
+        2576
+      ],
+      "id": "b0a8d89a-3003-47e2-a9c3-ede0bc3c0ff2",
+      "name": "knowledgeBase"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c5289efd-df59-40e4-84d6-ee8a07e2e2f7",
+                    "leftValue": "={{ $('getConverationStatus').item.json.status }}",
+                    "rightValue": "human_active",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "human_active"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "74a81422-63cc-4e52-a687-a48747fe2108",
+                    "leftValue": "={{ $('getConverationStatus').item.json.status }}",
+                    "rightValue": "wait_human",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "wait_human"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        6160,
+        1680
+      ],
+      "id": "52a8da4c-f792-49e9-9562-48832d00dc1c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Humano Ativo"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        6336,
+        1488
+      ],
+      "id": "f6649951-3444-45e9-8d50-975b5bcd8e7d",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "description": "O Agente deverá utilizar está TOOL quando identificar a intenção do usuário de falar com funcionario de Suporte. Ou quando indetificar que será impossível prosseguir com a solicitação atual do usuário.",
+        "workflowId": {
+          "__rl": true,
+          "value": "B5_8SFTkZxmXrcWOp0Gg1",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/B5_8SFTkZxmXrcWOp0Gg1",
+          "cachedResultName": "Call Suporte"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "abstract": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('abstract', \"resumo detalhado da situação atual da conversa. Esse resumo será utilizado no envio do email. Não mencione termos como `knowledgeBase`, subtitua por sinonimos populares. Formate o html no padrão de email simples\", 'string') }}",
+            "tittle": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('tittle', ``, 'string') }}",
+            "sesseionID": "={{ $('extractSessionId').item.json.sessionID }}"
+          },
+          "matchingColumns": [
+            "abstract"
+          ],
+          "schema": [
+            {
+              "id": "tittle",
+              "displayName": "tittle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "abstract",
+              "displayName": "abstract",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sesseionID",
+              "displayName": "sesseionID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        6528,
+        2544
+      ],
+      "id": "5e9ed2bd-1f71-4e2d-86c8-3c1c1e5789f6",
+      "name": "Call Suporte"
+    },
+    {
+      "parameters": {
+        "content": "## Sesion Status Verification\n",
+        "height": 736,
+        "width": 2272,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4912,
+        1472
+      ],
+      "id": "9e1cfd7a-9d6f-40e3-99b4-64157fc42a4c",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "conversation_status",
+          "mode": "list",
+          "cachedResultName": "conversation_status"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $('extractSessionId').item.json.sessionID }}",
+            "status": "=bot_active"
+          },
+          "matchingColumns": [
+            "session_id"
+          ],
+          "schema": [
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        6304,
+        1840
+      ],
+      "id": "6a46567d-68b1-4f41-9fc5-97539bcba3fb",
+      "name": "set_bot_active_status",
+      "credentials": {
+        "postgres": {
+          "id": "PKDaOrqEkCEN3LxA",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b25d3f81-cd5b-4538-aeff-a4e9516c050a",
+              "leftValue": "={{ $('getConverationStatus').item.json.status }}",
+              "rightValue": "=bot_active",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5840,
+        1792
+      ],
+      "id": "298cb99a-b456-4460-b553-eefef00cbbfc",
+      "name": "isBotNotActive"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=# Prompt de Assistente de Suporte\n\n## Atribuição\nVocê é um assistente de suporte. Sua função é instruir usuário sobre suas \ndúvidas em relação a utilização do sistema, sempre com o objetivo de ajudar \nos cliente a conseguir realizar suas atividades com perfeição. Você responderá \npelo nome de Flora.\n\n## Contexto\nVocê surge no contexto de uma ferramenta chamada **Practium**, cujo o objetivo \né aumentar a produtividade na colheita de frutos, principalmente o café. A \nferramenta trabalha principalmente oferecendo ajustes no processo de adubação. \nMuitos dos clientes da ferramenta tem dificuldade de utilizar a plataforma, \nprincipalmente ao que se refere á cadastro de novos dados, navegação na \nplataforma, correção de erros, além de ter dúvidas sobre os planos oferecidos, \ne outras informações importantes da plataforma como um todo. Nesse contexto, \no seu trabalho será auxiliar o usuário justamente nesses impedimentos.\n\n## Instruções\n* Use `knowledgeBase` para consultar **TODO** e **QUALQUER** dados sobre a \n  categoria definida.\n* `Think` para fins de raciocínio ou ação de contingência.\n* `Call Suporte` para acionar um humano para resolver um problema que não pode \n  ser resolvido pelo agente.\n\n## Regras para as Tools\n* `knowledgeBase` SEMPRE vem primeiro. Nunca responda sem antes consultá-la.\n* Use `Call Suporte` apenas quando já foi realizado buscas em `knowledgeBase` \n  para atender a dúvida do usuário.\n\n## Exemplos\n\n### Exemplo 1 — Dúvida de navegação\nInput: \"Não estou conseguindo encontrar onde fica o relatório de análise de solo.\"\nAction: knowledgeBase(\"question\": \"Onde fica o relatório de análise de solo?\")\nOutput: \"Olá! Vamos encontrar isso juntos. Primeiro passo:\n[Etapa 1 retornada pela knowledgeBase]\nConseguiu realizar essa etapa? Me confirma para continuar!\"\n\n--- (usuário confirma) ---\n\nOutput: \"Ótimo! Agora o segundo passo:\n[Etapa 2 retornada pela knowledgeBase]\nConseguiu? Só me confirmar para continuar!\"\n\n--- (usuário confirma todas as etapas) ---\n\nOutput: \"Seus relatórios estarão listados na tela principal.\nConseguiu encontrar? Posso ajudar com mais alguma coisa?\"\n\n### Exemplo 2 — Múltiplas intenções na mesma mensagem\nInput: \"Como e onde eu cadastro uma análise de solo?\"\nAction: knowledgeBase(\"question\": \"Dados de Navegação?\")\nAction: knowledgeBase(\"question\": \"Como cadastrar uma análise de solo?\")\nOutput: \"Ótima pergunta! Vou te explicar os dois pontos, um de cada vez.\nVamos começar por **onde encontrar**. Primeiro passo:\n[Etapa 1 de navegação retornada pela knowledgeBase]\nConseguiu realizar essa etapa? Me confirma para continuar!\"\n\n--- (usuário confirma todas as etapas de navegação) ---\n\nOutput: \"Perfeito! Agora vamos para **como cadastrar**. Primeiro passo:\n[Etapa 1 de cadastro retornada pela knowledgeBase]\nConseguiu? Só confirmar para continuar!\"\n\n--- (usuário confirma todas as etapas de cadastro) ---\n\nOutput: \"Tudo certo! Conseguiu realizar o cadastro sem problemas?\"\n\n### Exemplo 3 — Mensagem ambígua com duas categorias diferentes\nInput: \"Terminei a análise e agora preciso saber o que colocar no campo de \nadubação, mas não sei nem onde fica isso no sistema.\"\nAction: knowledgeBase(\"question\": \"Quais informações da análise de solo são \nusadas para preencher a adubação?\")\nAction: knowledgeBase(\"question\": \"Onde fica o campo de adubação e como \npreenchê-lo?\")\nOutput: \"Entendido! Vou te ajudar com os dois pontos, um de cada vez.\nVamos começar pela **conexão entre análise e adubação**:\nOs valores de pH, fósforo e potássio obtidos na análise de solo são utilizados \npara preencher a recomendação de adubação. Guarde esses resultados antes de \ncontinuar.\nConseguiu anotar esses valores? Me confirma para continuar!\"\n\n--- (usuário confirma) ---\n\nOutput: \"Ótimo! Agora vamos para **onde fica e como preencher o campo de \nadubação**. Primeiro passo:\n[Etapa 1 retornada pela knowledgeBase]\nConseguiu realizar essa etapa? Me confirma para continuar!\"\n\n--- (usuário confirma todas as etapas) ---\n\nOutput: \"Ficou claro? Se travar em algum campo específico, é só me dizer!\"\n\n### Exemplo 4 — Correção de erro\nInput: \"Está aparecendo um erro quando tento salvar a análise de solo.\"\nAction: knowledgeBase(\"question\": \"Erro ao salvar análise de solo, como \ncorrigir?\")\nAction: Think — retorno insuficiente para identificar o erro específico, \nsolicitar mais detalhes ao usuário\nOutput: \"Erros ao salvar podem ter algumas causas. Me diz: qual é a mensagem \nde erro que aparece na tela? Com esse detalhe, consigo te orientar de forma \nmais precisa para resolver rapidinho.\"\n\n--- (usuário informa o erro) ---\n\nAction: knowledgeBase(\"question\": \"Erro [descrição do erro], como corrigir?\")\nOutput: \"Entendido! Vamos resolver isso. Primeiro passo:\n[Etapa 1 retornada pela knowledgeBase]\nConseguiu realizar essa etapa? Me confirma para continuar!\"\n\n### Exemplo 5 — Acionamento do Call Suporte por falta de resolução\nInput: \"Já tentei tudo que você disse e continua sem funcionar.\"\nAction: knowledgeBase(\"question\": \"Erro persistente ao utilizar a plataforma, \ncomo resolver?\")\nAction: Think — nenhuma solução adicional identificada, todas as tentativas \nesgotadas\nAction: Call Suporte — registrar o caso e encaminhar para atendimento humano\nOutput: \"Entendo, e lamento que não tenhamos conseguido resolver por aqui. \nJá registrei o seu caso no sistema e um profissional do Practium entrará em \ncontato para te ajudar diretamente. Obrigado pela paciência!\"\n\n### Exemplo 6 — Acionamento do Call Suporte por solicitação do usuário\nInput: \"Quero falar com um atendente humano.\"\nAction: Think — usuário solicitou humano, tentar entender e resolver antes \nde escalar\nOutput: \"Claro! Antes de acionar o suporte, me conta sua dúvida? Posso tentar \nresolver rapidinho por aqui.\"\n\n---\nInput: \"Não consigo cadastrar uma análise de solo.\"\nAction: knowledgeBase(\"question\": \"Como cadastrar uma análise de solo?\")\nOutput: \"Para cadastrar uma análise de solo, vamos passo a passo. Primeiro:\n[Etapa 1 retornada pela knowledgeBase]\nConseguiu realizar essa etapa? Me confirma para continuar!\"\n\n---\nInput: \"Continua sem funcionar.\"\nAction: Call Suporte — todas as tentativas esgotadas, registrar e encaminhar\nOutput: \"Entendido! Caso registrado. Um profissional do Practium entrará em \ncontato em breve.\"\n\n## POP — Procedimento Operacional Padrão\n1. **Receber a mensagem do usuário** e identificar todas as intenções e \n   categorias presentes na dúvida. As possíveis informações que trabalharemos \n   nas intenções são **Navegação na plataforma**, **Cadastro**, **Correção de \n   erro**, **Planos, Políticas e informações gerais Practium**.\n2. **Consultar a `knowledgeBase`** uma vez para cada intenção, antes de \n   formular qualquer resposta.\n3. **Avaliar o retorno** — se a resposta for clara e suficiente, siga para o \n   passo 5. Se for insuficiente ou ambígua, siga para o passo 4.\n4. **Acionar o `Think`** para raciocinar sobre o melhor caminho para o próximo \n   passo, mas cuidado para **NÃO** inventar respostas.\n5. **Formular e entregar a resposta em etapas** — apresente **uma etapa por \n   vez**. Após cada etapa, pergunte ao usuário se conseguiu realizar antes de \n   enviar a próxima. Só avance quando o usuário confirmar.\n6. **Confirmar se a dúvida foi resolvida** — se sim, encerre o atendimento. \n   Se não, repita o fluxo a partir do passo 2.\n7. **Caso a dúvida persista** após todas as tentativas de consulta à \n   knowledgeBase, acionar Call Suporte para registrar o caso. Se o usuário \n   solicitar um humano antes disso, siga o fluxo do Exemplo 6 — pergunte qual \n   é a dúvida e tente resolver antes de escalar.\n\n## Notas Finais\n* **Use o nó `Think`** para tratar problemas com lógica ambígua ou complexa \n  antes de prosseguir com a próxima ação.\n* **Não sugira soluções alternativas.** Caso não consiga obter os dados seja \n  qual for o motivo, **NÃO INVENTE** fluxos alternativos ou comuns, apenas \n  informe que pode resolver o problema transferindo para um funcionário do \n  Practium.\n* **Nunca encadeie chamadas desnecessárias.** Se a `knowledgeBase` retornar \n  uma resposta clara, não é necessário usar o Think.\n* **Múltiplas intenções:** Se a mensagem do usuário contiver mais de uma \n  dúvida, realize uma chamada à `knowledgeBase` para cada intenção identificada \n  antes de formular a resposta.\n* **Nunca invente informações.** Sob nenhuma circunstância você inventa dados. \n  Se não possui os dados, responda educadamente e sugira transferir a conversa \n  para um funcionário do Practium.\n* **Entrega em etapas:** Quando a resposta envolver um passo a passo, apresente \n  **uma etapa por vez**. Após cada etapa, pergunte ao usuário se conseguiu \n  realizar antes de enviar a próxima. Só avance quando o usuário confirmar. \n  Exemplo: \"Conseguiu realizar esse passo? Pode me confirmar para continuar!\"\n* **Tom:** Mantenha sempre um tom acolhedor, paciente e profissional.\n* Apresente todos os campos trazidos pela base de conhecimento para o usuário.\n* **Tente elaborar a URL a partir de metadata e da info da base de \n  conhecimento.**\n\n## Metadata:\n- base_url: {{ $('Settings').item.json.base_url }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        6208,
+        2272
+      ],
+      "id": "e8e7889c-061a-4eee-9ec3-38129a8e57f6",
+      "name": "Flora",
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "amount": 0.9
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        6400,
+        1696
+      ],
+      "id": "7f93d5f3-b7e4-442c-947f-f84d21517742",
+      "name": "Wait1",
+      "webhookId": "ab2c43cf-2237-4eba-b5ee-7646b5ef4894"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e6eed768-b441-4196-987e-c73be722342e",
+              "leftValue": "={{ DateTime.fromISO($('getConverationStatus').item.json.expires_at).toLocal() }}",
+              "rightValue": "={{ $now }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "after"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        6016,
+        1728
+      ],
+      "id": "67783de7-18d4-4516-8a3b-17b180d706cd",
+      "name": "verifyIfTTLExpires"
+    },
+    {
+      "parameters": {
+        "content": "### Record Manager",
+        "height": 624,
+        "width": 1360,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        -112
+      ],
+      "id": "ad6b1a89-d1e4-46d4-b2f5-78334c36578b",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "### Download Files",
+        "height": 656,
+        "width": 1008
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3696,
+        -304
+      ],
+      "id": "3cdc2d5a-fd0f-46c5-8592-c0f46327e143",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -2096,
+        1328
+      ],
+      "id": "95ffbd93-b525-4eb5-a603-289b076adaa8",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "0LtvSfR1BUp6aWpc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "document_records_as",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "document_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Loop Over Files').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "hash",
+              "fieldValue": "={{ $('Generate Hash').item.json.hash }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        128,
+        224
+      ],
+      "id": "e9995a4d-fe04-44f7-89c8-d382e7e07810",
+      "name": "Update Record Manager",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "documents_as",
+        "filterType": "string",
+        "filterString": "=metadata->>doc_id=like.*{{ $('Loop Over Files').item.json.id }}*"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        224
+      ],
+      "id": "f7c686cc-2444-40ee-8203-87a89fe0da46",
+      "name": "Delete old documents",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Inedxing in Vector DB \n",
+        "height": 512,
+        "width": 688
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2160,
+        1056
+      ],
+      "id": "82b5b46b-ef42-4c0a-b74a-4f630e6a03c1",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a note\nTratar caso de erro durante o ocr",
+        "height": 144,
+        "width": 208,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        544
+      ],
+      "id": "cf5b5142-df3f-4433-ac18-df7d819e7183",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        224
+      ],
+      "id": "e5739596-c0ce-4f5d-9fd7-1de413a37ca2",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ─── Recursive Markdown Text Splitter ─────────────────────────────────────────\n// Replica o comportamento do LangChain/n8n RecursiveCharacterTextSplitter\n// ─────────────────────────────────────────────────────────────────────────────\nconst MARKDOWN_SEPARATORS = [\n  \"\\n## \", \"\\n### \", \"\\n#### \", \"\\n##### \", \"\\n###### \",\n  \"\\n\\n\", \"\\n\", \" \", \"\"\n];\nconst chunkSize    = 1000;\nconst chunkOverlap = 0;\n\n// ── Etapa 1: split recursivo (igual ao seu, só ajuste no rebuild do separador)\nfunction splitRecursively(text, separators) {\n  if (!text || text.trim() === \"\") return [];\n\n  let usedSep = \"\";\n  let newSeps = [];\n  let rawSplits = [];\n\n  for (let i = 0; i < separators.length; i++) {\n    const sep = separators[i];\n    if (sep === \"\") {\n      rawSplits = text.split(\"\");\n      usedSep = \"\";\n      newSeps = [];\n      break;\n    }\n    if (text.includes(sep)) {\n      usedSep = sep;\n      newSeps = separators.slice(i + 1);\n      const escaped = sep.replace(/[.*+?^${}()|[\\]\\\\]/g, \"\\\\$&\");\n      rawSplits = text.split(new RegExp(`(?=${escaped})`));\n      break;\n    }\n  }\n\n  if (rawSplits.length === 0) return [text];\n\n  const results = [];\n  for (const part of rawSplits) {\n    if (!part || part.trim() === \"\") continue;\n    if (part.length <= chunkSize) {\n      results.push(part);\n    } else if (newSeps.length > 0) {\n      results.push(...splitRecursively(part, newSeps));\n    } else {\n      results.push(part); // força manter mesmo sendo grande\n    }\n  }\n  return results;\n}\n\nfunction mergeChunks(splits, separator) {\n  const chunks = [];\n  let currentParts = [];\n  let currentLen = 0;\n  const sepLen = separator.length;\n\n  for (const split of splits) {\n    const splitLen = split.length;\n\n    // Se adicionar esse split estoura o chunkSize, fecha o chunk atual\n    if (currentLen + splitLen + (currentParts.length > 0 ? sepLen : 0) > chunkSize) {\n      if (currentParts.length > 0) {\n        const chunk = currentParts.join(separator).trim();\n        if (chunk) chunks.push(chunk);\n\n        // ── Overlap: mantém partes do final para o próximo chunk\n        while (\n          currentParts.length > 0 &&\n          (currentLen > chunkOverlap ||\n            (currentLen + splitLen + sepLen > chunkSize && currentLen > 0))\n        ) {\n          currentLen -= currentParts[0].length + (currentParts.length > 1 ? sepLen : 0);\n          currentParts.shift();\n        }\n      }\n    }\n\n    currentParts.push(split);\n    currentLen += splitLen + (currentParts.length > 1 ? sepLen : 0);\n  }\n\n  // flush do último chunk\n  if (currentParts.length > 0) {\n    const chunk = currentParts.join(separator).trim();\n    if (chunk) chunks.push(chunk);\n  }\n\n  return chunks;\n}\n\n// ── Pipeline completo\nfunction splitMarkdown(text) {\n  const splits = splitRecursively(text, MARKDOWN_SEPARATORS);\n  // O merge usa \"\" como separador (os splits já carregam o separador embutido)\n  return mergeChunks(splits, \"\");\n}\n\n// ─── Lógica principal do nó ───────────────────────────────────────────────────\nconst items = $input.all();\nconst output = [];\n\nfor (const item of items) {\n  const text = item.json.text || item.json.content || item.json.pageContent || \"\";\n  if (!text) continue;\n\n  const chunks = splitMarkdown(text);\n\n  for (let chunkIdx = 0; chunkIdx < chunks.length; chunkIdx++) {\n    const chunk = chunks[chunkIdx];\n    output.push({\n      json: {\n        text: chunk,\n        metadata: {\n          chunkIndex: chunkIdx,\n          chunkTotal: chunks.length,\n          chunkSize: chunk.length,\n          ...$input.first().json.metadata\n        }\n      }\n    });\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3200,
+        1184
+      ],
+      "id": "3dc0cf00-de07-4a55-80f9-d47a622f576f",
+      "name": "Chunking"
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -3040,
+        1184
+      ],
+      "id": "8af52b79-ea7c-41e7-a3f3-d2e386930826",
+      "name": "Loop Over Chunks"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "87b87f7f-5a5e-4e00-ad36-8b884808ecb6",
+              "name": "content",
+              "value": "={{ $('Generate Chunk Description').item.json.output[0].content[0].text }} - {{ $('Loop Over Chunks').item.json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2336,
+        1136
+      ],
+      "id": "34bc93af-0e32-42d0-ac87-5a5885561ce3",
+      "name": "Setup text for embeding"
+    },
+    {
+      "parameters": {
+        "content": "### Generate Chunk Description\n",
+        "height": 384,
+        "width": 790,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3232,
+        1024
+      ],
+      "id": "7396b2b9-8c50-4964-86d0-bd4cbe8675ed",
+      "name": "Sticky Note17"
+    },
+    {
+      "parameters": {
+        "content": "### Convert Documents to Markdown",
+        "height": 304,
+        "width": 784,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2112,
+        240
+      ],
+      "id": "1cce01d5-41b4-4559-aaa2-022c58626742",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://api.mistral.ai/v1/files/{{ $('Uplod file to Mistral').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1552,
+        272
+      ],
+      "id": "4530f2e7-0895-452c-9d69-dbaccccfa59a",
+      "name": "Delete Uploaded File",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "twLwDAPJhbMQtVWd",
+          "name": "Bearer Auth Mistral account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractContent(documents) {\n  let content = \"\";\n\n  for (const doc of documents) {\n    // Adiciona o markdown\n    if (doc.markdown) {\n      content += doc.markdown + \"\\n\\n\";\n    }\n\n    // Substitui as referências [tbl-x.html] pelo conteúdo real da tabela\n    if (doc.tables && doc.tables.length > 0) {\n      for (const table of doc.tables) {\n        content = content.replace(\n          `[${table.id}](${table.id})`,\n          table.content\n        );\n      }\n    }\n  }\n\n  return content.trim();\n}\n\n// Uso:\nconst content = extractContent($input.first().json.pages);\nconsole.log(content);\n\n\nreturn {content}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1552,
+        400
+      ],
+      "id": "5fe1a10c-6ee1-4c7d-8afe-978e9b86a627",
+      "name": "Merge Documents with Tables"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "231830de-4a2e-49d4-8750-14f4a88c747e",
+              "name": "content",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1072,
+        112
+      ],
+      "id": "8eedf71f-8711-4772-b3a5-beb53495a564",
+      "name": "Set Content"
+    },
+    {
+      "parameters": {
+        "html": "={{ $json.data }}",
+        "destinationKey": "content",
+        "options": {
+          "ignore": "script, style, nav, header, footer, aside, iframe, noscript",
+          "textReplace": {
+            "values": [
+              {
+                "pattern": "\\[([^\\]]+)\\]\\([^)]+\\)",
+                "replacement": "$1"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        -1728,
+        64
+      ],
+      "id": "61ff922c-ec5c-4a2e-b3d8-6a125f6925be",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "content": "# RAG Files - Creation and Update\n",
+        "height": 240,
+        "width": 358,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -4080,
+        -128
+      ],
+      "id": "ad24bfc0-87d5-4715-b8ff-63d6356498e1",
+      "name": "Sticky Note18"
+    },
+    {
+      "parameters": {
+        "content": "# Type File Router \n* HTML\n* MD/TXT\n* PDF,DOCXS, XLS, etc\n",
+        "height": 480,
+        "width": 326,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2560,
+        -192
+      ],
+      "id": "caaaffda-edd4-43e9-9c64-bc3a9621e5ec",
+      "name": "Sticky Note19"
+    },
+    {
+      "parameters": {
+        "content": "# Record Manager Router\n1. Create -> Register new record and new chunks\n2. Update -> Remove old chunks and update record\n3. Do Nothing -> No Changes\n",
+        "height": 176,
+        "width": 438,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        -96
+      ],
+      "id": "ee6a2c5c-8091-4715-ac9b-7d46988f5ea3",
+      "name": "Sticky Note20"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -3168,
+        64
+      ],
+      "id": "c356aee9-bd5b-43ba-a135-278efeda90d3",
+      "name": "Loop Over Files"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Loop Over Files').item.json.id}}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2992,
+        80
+      ],
+      "id": "5812dffd-c431-4efb-a9e6-f6670c74caca",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jLrsYc5Jsibwavon",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1q2R9opukSL7A1oVpYZDtK-CSmf3nskJp",
+          "mode": "list",
+          "cachedResultName": "N8N_PRACTIUM_AS",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1q2R9opukSL7A1oVpYZDtK-CSmf3nskJp"
+        },
+        "event": "fileUpdated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3600,
+        160
+      ],
+      "id": "529d998e-96d9-4063-b6d7-2bb204f08dd1",
+      "name": "Google Drive Trigger - FileUpdated",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jLrsYc5Jsibwavon",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1q2R9opukSL7A1oVpYZDtK-CSmf3nskJp",
+          "mode": "list"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3600,
+        -64
+      ],
+      "id": "3a89fdeb-b692-40cb-b013-6a05050f029c",
+      "name": "Google Drive Trigger - FileCreated",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jLrsYc5Jsibwavon",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/files",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "purpose",
+              "value": "ocr"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "=file",
+              "inputDataFieldName": "={{ Object.keys($binary)[0] }}"
+            },
+            {
+              "name": "filename",
+              "value": "file.md"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -2064,
+        336
+      ],
+      "id": "a1f487bb-e3b2-4d55-8420-c430abfacbcd",
+      "name": "Uplod file to Mistral",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "twLwDAPJhbMQtVWd",
+          "name": "Bearer Auth Mistral account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.mistral.ai/v1/files/{{ $json.id }}/url",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1888,
+        336
+      ],
+      "id": "02ca6a7a-0d4e-4ece-8505-6c43d3b9964f",
+      "name": "Get Url Signed",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "twLwDAPJhbMQtVWd",
+          "name": "Bearer Auth Mistral account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/ocr",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer lY8YW1bYk4uROX5e4zJ4ZPW3ZV4XWUyp"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"mistral-ocr-latest\",\n  \"document\": {\n    \"type\": \"document_url\",\n    \"document_url\": \"{{ $json.url }}\"\n  },\n  \"table_format\": \"html\",\n  \"include_image_base64\": true\n} ",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1728,
+        336
+      ],
+      "id": "f995893f-9029-41cb-a4f5-b7a4ee1c0b73",
+      "name": "Get Ocr Results",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "twLwDAPJhbMQtVWd",
+          "name": "Bearer Auth Mistral account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "empty",
+                      "singleValue": true
+                    },
+                    "id": "0719a4c1-dad2-415c-a381-70dee992392f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "create"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "59038a06-f860-45a9-806d-9e7cd8b6d5fb",
+                    "leftValue": "={{ $json.hash }}",
+                    "rightValue": "={{ $('Generate Hash').item.json.hash }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "update"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "75fdb695-6625-4e68-9838-6691ef7942c7",
+                    "leftValue": "={{ $json.hash }}",
+                    "rightValue": "={{ $('Generate Hash').item.json.hash }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "do_nothing"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -384,
+        96
+      ],
+      "id": "e00f425d-df6e-497f-b064-7a1fb0a28391",
+      "name": "Switch - Record Manager Router"
+    },
+    {
+      "parameters": {
+        "tableId": "document_records_as",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "document_id",
+              "fieldValue": "={{ $('Setup fileId').item.json.fileId }}"
+            },
+            {
+              "fieldId": "hash",
+              "fieldValue": "={{ $('Generate Hash').item.json.hash }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        -16
+      ],
+      "id": "6b30eb45-4cd9-4ce1-bd45-1e5eedef1558",
+      "name": "Register New Record",
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "document_records_as",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "document_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Setup fileId').item.json.fileId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        112
+      ],
+      "id": "a914e329-3156-4b3d-be7a-7fcf2eafb342",
+      "name": "Serch Record Manager",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "value": "={{ $json.content }}",
+        "dataPropertyName": "hash"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        112
+      ],
+      "id": "0ba8d0d1-b983-4ddb-b311-55188fcce8e8",
+      "name": "Generate Hash"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "text/plain|text/markdown",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    },
+                    "id": "105d5d37-4b0f-4783-9252-2f7f060c76ec"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "MD/TXT"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "90863310-1ba4-4a73-9b11-56a5ee687f4b",
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "text/html",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "HTML"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "application/json|application/xml|text/javascript|application/javascript|text/css",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notRegex"
+                    },
+                    "id": "105d5d37-4b0f-4783-9252-2f7f060c76eb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "OCR_SUPPORTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2432,
+        48
+      ],
+      "id": "8bcfd829-764d-44d4-9a35-3cc366f8e4f4",
+      "name": "Switch - File Type"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -2096,
+        64
+      ],
+      "id": "3617f124-380f-4272-87db-9e0c999ff746",
+      "name": "Extract from HTML File"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "binaryPropertyName": "={{ Object.keys($binary)[0] }}",
+        "destinationKey": "content",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -1808,
+        -192
+      ],
+      "id": "6a86d859-9111-42aa-b895-88015768f9a1",
+      "name": "Extract from TXT/MD File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "56a1a089-ca8b-4dc4-8a2e-bb557315478e",
+              "name": "=metadata",
+              "value": "={{\n  {\n    ...(\n      $('Upload file').isExecuted\n        ? {\n            file_id: $('Upload file').item.json.id,\n            file_name: $('Upload file').item.json.name\n          }\n        : $('Loop Over Chunks').item.json.metadata\n    ),\n    ...($('Chunking').item.json.metadata),\n    allowedRoles: $('Webhook1').isExecuted\n      ? $('Webhook1').first().json.body.allowedRoles\n      : $('Setup Roles').item.json.allowedRoles\n  }\n}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2544,
+        1136
+      ],
+      "id": "61632746-f596-455c-b1dc-1da0964462d7",
+      "name": "Setup Metadata"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d7d24b05-7105-4d1b-9022-988e5f8ae48f",
+              "name": "content",
+              "value": "={{ $('Set Content').item.json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        560
+      ],
+      "id": "a9249745-e1fa-48ca-9210-8d9463805798",
+      "name": "Setup Content"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2688,
+        560
+      ],
+      "id": "97338460-4369-4394-94de-eb5f75d3cd51",
+      "name": "DONE"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -2544,
+        560
+      ],
+      "id": "6833cd0f-df0f-49ce-8b64-96afece70c19",
+      "name": "Aggregate Trash"
+    },
+    {
+      "parameters": {
+        "chunkSize": 10000,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        -1968,
+        1424
+      ],
+      "id": "9acce497-0c2b-402a-a063-c1c3d155818e",
+      "name": "Recursive Character Text Splitter1"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents_as",
+          "mode": "list",
+          "cachedResultName": "documents_as"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -2080,
+        1136
+      ],
+      "id": "fad8f9d9-3e1a-4cd0-9f49-a99db8d1abe5",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "doc_id",
+                "value": "={{ $('Setup fileId').item.json.fileId }}"
+              },
+              {
+                "name": "is_toc",
+                "value": "={{ $json.is_toc != null && $json.is_toc}}"
+              },
+              {
+                "name": "=chunk_total",
+                "value": "={{ $('Setup Metadata').item.json.metadata.chunkTotal }}"
+              },
+              {
+                "name": "=chunk_size",
+                "value": "={{ $('Setup Metadata').item.json.metadata.chunkSize }}"
+              },
+              {
+                "name": "chunk_index",
+                "value": "={{ $('Setup Metadata').item.json.metadata.chunkIndex }}"
+              },
+              {
+                "name": "allowedRoles",
+                "value": "={{ $('Setup Metadata').item.json.metadata.allowedRoles }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -1984,
+        1296
+      ],
+      "id": "f721dc5e-f039-4a13-950b-7074d60a1c41",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1648,
+        1136
+      ],
+      "id": "f9e8048e-1145-483c-ae9e-2d9c7f0960a7",
+      "name": "Wait2",
+      "webhookId": "5fb88006-5aa6-4700-8b9f-b9cc29c71d59"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        6064,
+        2480
+      ],
+      "id": "90f4e84a-a9d7-4906-86db-d7d3ce2ecf3d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "0LtvSfR1BUp6aWpc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=<document> \n{{ $('Setup Content').item.json.content }}\n</document> \nHere is the chunk we want to situate within the whole document \n<chunk> \n{{ $json.text }}\n</chunk> \nPlease give a short succinct context to situate this chunk within the overall document for the purposes of improving search retrieval of the chunk. Answer only with the succinct context and nothing else, and Always answer in Portuguese."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -2848,
+        1136
+      ],
+      "id": "b3052b22-2688-4825-978a-c57cef8634b2",
+      "name": "Generate Chunk Description",
+      "retryOnFail": true,
+      "waitBetweenTries": 3400,
+      "credentials": {
+        "openAiApi": {
+          "id": "0LtvSfR1BUp6aWpc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "796220bb-d7ad-4274-b818-ef5144efcb44",
+              "name": "base_url",
+              "value": "practium-client.utheuz.com",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5088,
+        1840
+      ],
+      "id": "e7b107f8-08a2-45cb-b6b8-f808fa583831",
+      "name": "Settings"
+    },
+    {
+      "parameters": {
+        "content": "## Ajustes de Contexto\n",
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        6624,
+        2336
+      ],
+      "id": "1912fb97-e5c2-4e06-a6ca-dbf6fe700405",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "documents_as",
+        "filterType": "string",
+        "filterString": "=metadata->>doc_id=like.*{{ $('Loop Over Items').item.json.id }}*"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2016,
+        -832
+      ],
+      "id": "4a3135e9-3d50-4d7f-bd4f-f9a56d2e935e",
+      "name": "Delete old documents1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1856,
+        -832
+      ],
+      "id": "af95dd6a-1bca-4aaa-aa27-fb90f89abe6f",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1q2R9opukSL7A1oVpYZDtK-CSmf3nskJp",
+          "mode": "list",
+          "cachedResultName": "N8N_PRACTIUM_AS",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1q2R9opukSL7A1oVpYZDtK-CSmf3nskJp"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2848,
+        -672
+      ],
+      "id": "644abe41-06d2-4d66-97c0-42564261102b",
+      "name": "Google Drive Trigger3",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jLrsYc5Jsibwavon",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -2640,
+        -752
+      ],
+      "id": "c580ff4d-63a1-49cb-b13b-2205cec48e1e",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "document_records_as",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "document_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Loop Over Items').item.json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1680,
+        -832
+      ],
+      "id": "68018233-7d1a-4320-bcc1-369f7d4798dc",
+      "name": "Delete Record Row",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "document_records_as",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "document_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Loop Over Items').item.json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2368,
+        -736
+      ],
+      "id": "5e1caed0-e79c-4e46-a3c5-d3ab6f8ed95c",
+      "name": "Serch Record Manager2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5aae7609-d3bf-4585-b292-93fd961c2d64",
+              "leftValue": "={{ $json.id}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2192,
+        -736
+      ],
+      "id": "7e941c83-6834-4898-9b6d-d5ed2bd5c4ba",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "content": "### Delete File ",
+        "height": 384,
+        "width": 1616,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2912,
+        -880
+      ],
+      "id": "32fa9bb7-0536-4753-96fe-5f64e7fc5dbb",
+      "name": "Sticky Note16"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1KQIEXmWNlozZKuXk8YmVQjx19rWLS_x0",
+          "mode": "list",
+          "cachedResultName": "N8N PRACTIUM",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1KQIEXmWNlozZKuXk8YmVQjx19rWLS_x0"
+        },
+        "event": "folderUpdated"
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2848,
+        -816
+      ],
+      "id": "229fee91-84bb-4054-9ca1-505fe612da28",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jLrsYc5Jsibwavon",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Loop Over Items').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1488,
+        -720
+      ],
+      "id": "3dd9da90-7fcc-4285-bd13-89ab58a965a0",
+      "name": "Delete a file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jLrsYc5Jsibwavon",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        5488,
+        2592
+      ],
+      "id": "c23deb79-7484-4d27-8e5b-56f8aa1b04c5",
+      "name": "Chat Memory Manager"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        6192,
+        2512
+      ],
+      "id": "234f0a77-634a-41c3-a365-bfda6ed91500",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "PKDaOrqEkCEN3LxA",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 3
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        5488,
+        2784
+      ],
+      "id": "04936a05-8b98-4b98-a093-bd90e169e51e",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "path": "history",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "*",
+          "binaryPropertyName": "sessionId"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        4976,
+        2592
+      ],
+      "id": "c4c6116b-5477-47ed-a0c4-6e15014b264d",
+      "name": "Webhook",
+      "webhookId": "33aae200-9550-4c36-98a4-706dd919c8fa"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "38821550-3f2f-4828-bf84-ad66b029ca3b",
+              "name": "sessionId",
+              "value": "={{ $json.query.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5184,
+        2592
+      ],
+      "id": "0b47e0c6-8e8c-48b8-99e6-e695db081327",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5e20cbd2-0da9-49b5-9d8f-0559017f42de",
+              "name": "allowedRoles",
+              "value": "[   \"gestor_admin\",   \"admin\" ]",
+              "type": "array"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2816,
+        80
+      ],
+      "id": "9a245174-4fb3-44c6-8004-68098f1f36a5",
+      "name": "Setup Roles"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3ae48d7-7a03-4438-98d8-8ee0320cc026",
+              "name": "role",
+              "value": "gestor_business",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4928,
+        1840
+      ],
+      "id": "7d86e89a-a830-47af-90a5-2cc05d10536c",
+      "name": "Setup Role"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5e20cbd2-0da9-49b5-9d8f-0559017f42de",
+              "name": "allowedRoles",
+              "value": "[   \"produtor_independente\",   \"agricultor_independente\",   \"agricultor_individual\",   \"consultor_independente\",   \"agricultor_cliente_profissional\",   \"gestor_business\",   \"consultor_colaborador_business\",   \"agricultor_cliente_business\",   \"gestor_admin\",   \"admin\" ]",
+              "type": "array"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2656,
+        -224
+      ],
+      "id": "f1139516-195a-4c11-addc-d64f777bde3c",
+      "name": "List Roles"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "send-file",
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -3632,
+        -240
+      ],
+      "id": "b144b980-a0d2-447e-8c7c-207d16a5547a",
+      "name": "Webhook1",
+      "webhookId": "c5409fb1-cf04-430f-a108-de18f7bbb074"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "={{ Object.keys($binary)[0] }}",
+        "name": "={{$binary[Object.keys($binary)[0]].fileName}}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1q2R9opukSL7A1oVpYZDtK-CSmf3nskJp",
+          "mode": "list",
+          "cachedResultName": "N8N_PRACTIUM_AS",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1q2R9opukSL7A1oVpYZDtK-CSmf3nskJp"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -2912,
+        -256
+      ],
+      "id": "792f04c9-3214-4bc7-a96a-6a7afe3856c9",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jLrsYc5Jsibwavon",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -3200,
+        -240
+      ],
+      "id": "e9051bad-91bc-44d6-82e6-756b26e28edd",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "$binary",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -3392,
+        -240
+      ],
+      "id": "192fe5f2-a196-4c1f-a72b-a32061fe5e39",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2800,
+        -112
+      ],
+      "id": "a2710a11-6441-4852-bafe-8997ad2100dd",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "803623ec-e6b9-49a0-a841-dc845a8a4990",
+              "name": "fileId",
+              "value": "={{ $('Upload file').isExecuted ? $('Upload file').item.json.id : $('Loop Over Files').item.json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2624,
+        48
+      ],
+      "id": "211c01fb-f8ac-45e0-96ef-869de98f3d5f",
+      "name": "Setup fileId"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Loop Over Files').isExecuted }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    },
+                    "id": "da4a9740-6b05-4ad4-ac67-f4b1c85784bb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "FromDrive"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bcd82338-ae6f-4612-86d0-3016c878b05c",
+                    "leftValue": "={{ $('Loop Over Items1').isExecuted }}",
+                    "rightValue": "=",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "FromHook"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2336,
+        560
+      ],
+      "id": "34c0b6a7-a730-4fea-9d29-e4220b365806",
+      "name": "Switch1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Setup Role",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Flora",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Flora",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "conversationExists": {
+      "main": [
+        [
+          {
+            "node": "isBotNotActive",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "add_conversation_id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "add_conversation_id": {
+      "main": [
+        [
+          {
+            "node": "Extract Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extractSessionId": {
+      "main": [
+        [
+          {
+            "node": "getConverationStatus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getConverationStatus": {
+      "main": [
+        [
+          {
+            "node": "conversationExists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Query": {
+      "main": [
+        [
+          {
+            "node": "Flora",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "knowledgeBase": {
+      "ai_tool": [
+        [
+          {
+            "node": "Flora",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Suporte": {
+      "ai_tool": [
+        [
+          {
+            "node": "Flora",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Wait Human Response": {
+      "main": [
+        []
+      ]
+    },
+    "set_bot_active_status": {
+      "main": [
+        [
+          {
+            "node": "Extract Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isBotNotActive": {
+      "main": [
+        [
+          {
+            "node": "verifyIfTTLExpires",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Set Wait Human Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verifyIfTTLExpires": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "set_bot_active_status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Record Manager": {
+      "main": [
+        [
+          {
+            "node": "Setup Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete old documents": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Update Record Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunking": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Chunks": {
+      "main": [
+        [
+          {
+            "node": "DONE",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Chunk Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup text for embeding": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Documents with Tables": {
+      "main": [
+        [
+          {
+            "node": "Set Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Content": {
+      "main": [
+        [
+          {
+            "node": "Generate Hash",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Set Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Files": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Setup Roles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger - FileUpdated": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger - FileCreated": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Uplod file to Mistral": {
+      "main": [
+        [
+          {
+            "node": "Get Url Signed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Url Signed": {
+      "main": [
+        [
+          {
+            "node": "Get Ocr Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Ocr Results": {
+      "main": [
+        [
+          {
+            "node": "Delete Uploaded File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Documents with Tables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch - Record Manager Router": {
+      "main": [
+        [
+          {
+            "node": "Register New Record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete old documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Register New Record": {
+      "main": [
+        [
+          {
+            "node": "Setup Content",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Files",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serch Record Manager": {
+      "main": [
+        [
+          {
+            "node": "Switch - Record Manager Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Hash": {
+      "main": [
+        [
+          {
+            "node": "Serch Record Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch - File Type": {
+      "main": [
+        [
+          {
+            "node": "Extract from TXT/MD File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from HTML File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Uplod file to Mistral",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from HTML File": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from TXT/MD File": {
+      "main": [
+        [
+          {
+            "node": "Set Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup Metadata": {
+      "main": [
+        [
+          {
+            "node": "Setup text for embeding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup Content": {
+      "main": [
+        [
+          {
+            "node": "Chunking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DONE": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Trash",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Trash": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Files",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter1": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Flora",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Chunk Description": {
+      "main": [
+        [
+          {
+            "node": "Setup Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "extractSessionId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete old documents1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Delete Record Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Serch Record Manager2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Record Row": {
+      "main": [
+        [
+          {
+            "node": "Delete a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serch Record Manager2": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Delete old documents1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete a file": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Chat Memory Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Chat Memory Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup Roles": {
+      "main": [
+        [
+          {
+            "node": "Setup fileId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup Role": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Setup fileId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup fileId": {
+      "main": [
+        [
+          {
+            "node": "Switch - File Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "4af1bc23-35ee-4867-a836-6bec02d6d986",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7c52a83265c36473d937ecd78cc5a6c8f65a90445407a36e002efda7763a41fd"
+  },
+  "id": "8ly0MMJ-qvEgVEOiIgg6A",
+  "tags": [
+    {
+      "updatedAt": "2026-02-27T03:48:56.537Z",
+      "createdAt": "2026-02-27T03:48:56.537Z",
+      "id": "Djp595LTCgdpF1Se",
+      "name": "v1.2"
+    }
+  ]
+}
