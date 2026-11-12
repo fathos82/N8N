@@ -311,6 +311,8 @@ MCP_BASE_URL=http://<host>/mcp/sim-session-gamma npm run smoke
 - Chat n8n (workflow `GU2dSb6BGJlGJQRT`):
   - dependência ausente: execução `37681` chamou `check_onboarding_dependencies` e respondeu que
     falta a análise de solo, marcando os dados como simulados;
+  - perfil: execução `37692` chamou `get_user_context` e apresentou plano `profissional` e
+    permissões simuladas;
   - erro de validação: execução `37677` chamou `get_recent_validation_errors` e devolveu o
     campo `Fósforo (P)` com a mensagem exata;
   - falha simulada: com `sim-session-degraded`, a Flora respondeu que a consulta estava
