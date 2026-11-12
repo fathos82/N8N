@@ -39,7 +39,7 @@
       "name": "Generate List to Reraking"
     },
     {
-      "parameters": {"jsCode": "const results = $input.first().json.results;\nconst chunks = $('Setup chunks').first().json.chunks;\nconst minScore =  $('Settings').first().json.min_score_to_rank;\nconst sortedDocuments = results\n  .filter(r => r.relevance_score >= minScore)\n  .map(r => `[${r.relevance_score.toFixed(2)}] ${chunks[r.index].content}`);\n\nreturn [{ json: { sortedDocuments } }];"},
+      "parameters": {"jsCode": "// Why Code: Filtra, classifica por faixa de confiança, anexa metadados completos e preserva a ordem sequencial de passos (chunk_index) por documento sem perder o ranking de relevância.\nconst results = $input.first().json.results ?? [];\nconst chunks = $('Setup chunks').first().json.chunks ?? [];\nconst settings = $('Settings').first().json;\nconst minScore = settings.min_score_to_rank ?? 0.50;\nconst highConfidenceScore = settings.high_confidence_score ?? 0.75;\n\nconst approved = results\n  .filter(r => r.relevance_score >= minScore && chunks[r.index])\n  .map(r => {\n    const chunk = chunks[r.index];\n    const meta = chunk.metadata ?? {};\n    const score = Number(r.relevance_score.toFixed(4));\n    const confidence = r.relevance_score >= highConfidenceScore ? 'ALTA' : 'MEDIA';\n    const metadata = {\n      ...meta,\n      doc_id: meta.doc_id ?? chunk.doc_id ?? null,\n      file_name: meta.file_name ?? meta.fileName ?? chunk.file_name ?? null,\n      chunk_index: Number(meta.chunk_index ?? meta.chunkIndex ?? chunk.chunk_index ?? 0),\n      chunk_total: meta.chunk_total ?? meta.chunkTotal ?? chunk.chunk_total ?? null\n    };\n    return {\n      content: chunk.content,\n      score,\n      confidence,\n      metadata,\n      formatted: `[${confidence} | score: ${r.relevance_score.toFixed(2)} | doc: ${metadata.file_name ?? metadata.doc_id ?? 'unknown'} | passo: ${metadata.chunk_index + 1}/${metadata.chunk_total ?? '?'}] ${chunk.content}`\n    };\n  });\n\nif (approved.length === 0) {\n  return [{\n    json: {\n      hasResults: false,\n      sortedDocuments: []\n    }\n  }];\n}\n\nconst docMaxScore = new Map();\nfor (const item of approved) {\n  const docId = String(item.metadata.doc_id ?? '');\n  const currentMax = docMaxScore.get(docId) ?? -Infinity;\n  if (item.score > currentMax) {\n    docMaxScore.set(docId, item.score);\n  }\n}\n\nconst sortedDocuments = approved.sort((a, b) => {\n  const docA = String(a.metadata.doc_id ?? '');\n  const docB = String(b.metadata.doc_id ?? '');\n  if (docA !== docB) {\n    const maxDiff = (docMaxScore.get(docB) ?? 0) - (docMaxScore.get(docA) ?? 0);\n    if (maxDiff !== 0) return maxDiff;\n    return docA.localeCompare(docB);\n  }\n  return (a.metadata.chunk_index ?? 0) - (b.metadata.chunk_index ?? 0);\n});\n\nreturn [{\n  json: {\n    hasResults: true,\n    sortedDocuments\n  }\n}];"},
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [3840, 1024],
@@ -115,9 +115,10 @@
           "assignments": [
             {"id": "d9926ace-7bbc-42e7-a63e-a36f5a52dd7a", "name": "limit", "value": 10, "type": "number"},
             {"id": "2fa30f6c-f782-4dc6-9f05-a9ea8dca645d", "name": "top_k", "value": 7, "type": "number"},
-            {"id": "4d6ebbc8-19c1-4df5-afd9-4d898fed87e5", "name": "window", "value": 1, "type": "number"},
-            {"id": "df6f4a9b-9d2a-443e-adb7-6fe259bc06e9", "name": "min_score_to_expand", "value": 0.028, "type": "number"},
-            {"id": "2f3fa82f-eb91-4fcc-9c6a-f36eef2bd76d", "name": "min_score_to_rank", "value": 0.79, "type": "number"}
+            {"id": "4d6ebbc8-19c1-4df5-afd9-4d898fed87e5", "name": "window", "value": 2, "type": "number"},
+            {"id": "df6f4a9b-9d2a-443e-adb7-6fe259bc06e9", "name": "min_score_to_expand", "value": 0.025, "type": "number"},
+            {"id": "2f3fa82f-eb91-4fcc-9c6a-f36eef2bd76d", "name": "min_score_to_rank", "value": 0.5, "type": "number"},
+            {"id": "8b63a910-51d2-46c9-9b41-7e58c7d4109f", "name": "high_confidence_score", "value": 0.75, "type": "number"}
           ]
         },
         "options": {}
@@ -137,7 +138,7 @@
       "name": "Generate List do Context Expansion"
     },
     {
-      "parameters": {"jsCode": "const hits = $('Generate List do Context Expansion').first().json.hits ?? [];\nconst expanded = $input.all().map(i => i.json);\n\nconst all = [...hits, ...expanded];\n\nconst seen = new Set();\nconst chunks = all.filter(c => {\n  const key = `${c.metadata?.doc_id}_${c.metadata?.chunk_index}`;\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\n\nreturn [{ json: { chunks } }];"},
+      "parameters": {"jsCode": "// Why Code: Deduplica chunks vindos da busca híbrida e da expansão de janela e ordena posicionalmente por doc_id e chunk_index.\nconst hits = $('Generate List do Context Expansion').first().json.hits ?? [];\nconst expanded = $input.all().map(i => i.json).filter(c => c && (c.content || c.metadata));\n\nconst all = [...hits, ...expanded];\n\nconst seen = new Set();\nconst chunks = all\n  .filter(c => {\n    const docId = c.metadata?.doc_id ?? c.doc_id;\n    const chunkIndex = c.metadata?.chunk_index ?? c.chunk_index;\n    if (docId === undefined && chunkIndex === undefined) return false;\n    const key = `${docId}_${chunkIndex}`;\n    if (seen.has(key)) return false;\n    seen.add(key);\n    return true;\n  })\n  .sort((a, b) => {\n    const docA = String(a.metadata?.doc_id ?? a.doc_id ?? '');\n    const docB = String(b.metadata?.doc_id ?? b.doc_id ?? '');\n    if (docA !== docB) return docA.localeCompare(docB);\n    const idxA = Number(a.metadata?.chunk_index ?? a.chunk_index ?? 0);\n    const idxB = Number(b.metadata?.chunk_index ?? b.chunk_index ?? 0);\n    return idxA - idxB;\n  });\n\nreturn [{ json: { chunks } }];"},
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [3312, 1024],
