@@ -2124,23 +2124,6 @@
       "name": "Chat Memory Manager"
     },
     {
-      "parameters": {},
-      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
-      "typeVersion": 1.3,
-      "position": [
-        6192,
-        2512
-      ],
-      "id": "e1d9b88e-8070-4a4d-b6cd-8a7ac6b9f186",
-      "name": "Postgres Chat Memory",
-      "credentials": {
-        "postgres": {
-          "id": "PKDaOrqEkCEN3LxA",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
       "parameters": {
         "contextWindowLength": 3
       },
@@ -2242,30 +2225,6 @@
       ],
       "id": "41233712-0a1f-4f4b-ac41-05a0f8a5ceff",
       "name": "Setup Role"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "5e20cbd2-0da9-49b5-9d8f-0559017f42de",
-              "name": "allowedRoles",
-              "value": "[   \"produtor_independente\",   \"agricultor_independente\",   \"agricultor_individual\",   \"consultor_independente\",   \"agricultor_cliente_profissional\",   \"gestor_business\",   \"consultor_colaborador_business\",   \"agricultor_cliente_business\",   \"gestor_admin\",   \"admin\" ]",
-              "type": "array"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -2656,
-        -224
-      ],
-      "id": "d6453fa5-a1ef-44d5-93f5-db5023879c83",
-      "name": "List Roles"
     },
     {
       "parameters": {
