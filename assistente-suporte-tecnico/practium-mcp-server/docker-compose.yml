@@ -1,0 +1,16 @@
+services:
+  practium-mcp-sim:
+    build: .
+    container_name: practium-mcp-sim
+    restart: unless-stopped
+    ports:
+      - "3907:3907"
+    environment:
+      PORT: "3907"
+      HOST: "0.0.0.0"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3907/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
