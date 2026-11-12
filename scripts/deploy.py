@@ -7,7 +7,7 @@ se nao existe, e criado (POST). Nunca cria copia duplicada e nunca toca nos orig
 Env: N8N_URL (ex: https://n8n.exemplo.com), N8N_API_KEY, TEST_EMAIL_TO (destino dos e-mails do Call Suporte de teste)
 Uso: python scripts/deploy.py [--dry-run]
 """
-import json, os, sys, urllib.request, urllib.parse
+import json, os, sys, urllib.error, urllib.request, urllib.parse
 from pathlib import Path
 
 DIR = Path(__file__).resolve().parent.parent / "assistente-suporte-tecnico" / "workflows"
@@ -28,9 +28,15 @@ if not DRY and not TEST_EMAIL:
 def api(method, path, body=None):
     req = urllib.request.Request(f"{BASE}/api/v1{path}", method=method,
                                  data=json.dumps(body).encode() if body is not None else None,
-                                 headers={"X-N8N-API-KEY": KEY, "Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.load(r)
+                                 headers={"X-N8N-API-KEY": KEY, "Content-Type": "application/json",
+                                          "Accept": "application/json",
+                                          "User-Agent": "n8n-deploy-script/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode(errors="replace")[:500]
+        sys.exit(f"HTTP {e.code} em {method} {path}: {detail}")
 
 
 def find_by_name(name):
