@@ -1,4 +1,5 @@
 {
+  "id": "nl9lOKaIVfltHuZf",
   "name": "assistente-suporte-tecnico (security copy)",
   "nodes": [
     {
@@ -1603,8 +1604,8 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
       "position": [
-        3568,
-        352
+        3504,
+        336
       ]
     },
     {
@@ -1866,10 +1867,10 @@
         "description": "Chamar esta TOOL sempre que o necessitar de dados para responder alguma dúvida do usúario sobre: \n- Navegação\n- Cadastro de Dados\n- Correção de erros\n- Dúvidas da Plataforma",
         "workflowId": {
           "__rl": true,
-          "value": "itUZrnqQ72iDd5lR",
+          "value": "9hLboYiaMlm9GKf6",
           "mode": "list",
-          "cachedResultUrl": "/workflow/itUZrnqQ72iDd5lR",
-          "cachedResultName": "[TEST] HibridySearchSuportAgent (security copy)"
+          "cachedResultUrl": "/workflow/9hLboYiaMlm9GKf6",
+          "cachedResultName": "HibridySearchSuportAgent (security copy)"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
@@ -2007,10 +2008,10 @@
         "description": "O Agente deverá utilizar está TOOL quando identificar a intenção do usuário de falar com funcionario de Suporte. Ou quando indetificar que será impossível prosseguir com a solicitação atual do usuário.",
         "workflowId": {
           "__rl": true,
-          "value": "uddUWrSjTh8bqrSq",
+          "value": "B5_8SFTkZxmXrcWOp0Gg1",
           "mode": "list",
-          "cachedResultUrl": "/workflow/uddUWrSjTh8bqrSq",
-          "cachedResultName": "[TEST] Call Suporte"
+          "cachedResultUrl": "/workflow/B5_8SFTkZxmXrcWOp0Gg1",
+          "cachedResultName": "Call Suporte"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
@@ -2668,7 +2669,6 @@
       ]
     }
   ],
-  "pinData": {},
   "connections": {
     "Embeddings OpenAI": {
       "ai_embedding": [
@@ -3637,19 +3637,12 @@
       ]
     }
   },
-  "active": true,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate",
     "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "binaryMode": "separate"
   },
-  "versionId": "a041acc7-0113-4910-8d90-5b8515447fb4",
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "7c52a83265c36473d937ecd78cc5a6c8f65a90445407a36e002efda7763a41fd"
-  },
-  "nodeGroups": [],
-  "id": "dIuPNhjIIsv7XPod",
+  "pinData": {},
   "tags": []
 }

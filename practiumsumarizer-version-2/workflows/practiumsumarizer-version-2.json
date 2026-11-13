@@ -1,0 +1,2637 @@
+{
+  "id": "ygr90gm4XlkHegwm",
+  "name": "PractiumSumarizer Version 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2304,
+        96
+      ],
+      "id": "acd913d3-499f-48e0-aa41-fa4e2e7a6ca8",
+      "name": "When clicking ‘Execute workflow’",
+      "alwaysOutputData": true,
+      "notes": "k,jhh"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1cc98520-41e8-4eec-ad5c-4956162a9d76",
+              "name": "base_url",
+              "value": "https://practium-api-dev.utheuz.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        1712
+      ],
+      "id": "8f798e0d-37cf-48b1-90e2-c325791b9937",
+      "name": "Settings"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all() || [];\n\n// ---------------- Helpers ----------------\n\n// Item foliar = tem o array foliarApplicationAdvices dentro de response[0].\n// Só item foliar tem isso, então não depende do nome do \"type\".\nfunction isFoliarItem(json) {\n  return Array.isArray(json?.response?.[0]?.foliarApplicationAdvices);\n}\n\n// Helper único: percorre todos os itens de entrada e retorna o primeiro valor\n// não-nulo encontrado pelo `getter`. Usa optional chaining (?.) então não\n// quebra se o caminho não existir naquele item específico — só passa pro próximo.\n// `accept` (opcional) decide quais itens podem ser considerados.\n// try/catch: se um item vier malformado, pula pro próximo em vez de quebrar o nó.\nfunction findValue(getter, accept = null) {\n  for (const item of allItems) {\n    const json = item?.json;\n    if (!json) continue;\n    if (accept && !accept(json)) continue;\n    try {\n      const val = getter(json);\n      if (val != null) return val;\n    } catch (e) {\n      // ignora item com estrutura inesperada\n    }\n  }\n  return null;\n}\n\n// Só manda para a IA o tipo de análise que realmente existe (evita erro/timeout quando o setor não tem, por ex., análise foliar)\nfunction hasData(v) {\n  if (v == null) return false;\n  if (typeof v === \"string\") return v.trim() !== \"\";\n  if (Array.isArray(v)) return v.length > 0;\n  if (typeof v === \"object\") return Object.keys(v).length > 0;\n  return true;\n}\n\nconst notFoliar = (json) => !isFoliarItem(json);\n\n// ---------------- Solo (mesmos caminhos de antes, só ignorando item foliar) ----------------\nconst plantAdvices    = findValue((json) => json.response?.[0]?.plantingAdvices,    notFoliar);\nconst soilAnalyses    = findValue((json) => json.response?.[0]?.analysis,           notFoliar);\nconst fertilizerPlans = findValue((json) => json.response?.[0]?.fertilizationPlans, notFoliar);\nconst soilAnalysisHistory = findValue((json) => json.soilAnalysisHistory);\n\n// ---------------- Foliar ----------------\n// Aceita o formato antigo (campo na raiz) e o formato atual (dentro de response[0]).\nconst foliarApplicationAdvices = findValue((json) =>\n  json.foliarApplicationAdvices ??\n  (isFoliarItem(json) ? json.response[0].foliarApplicationAdvices : null)\n);\nconst leafTissueAnalysis = findValue((json) =>\n  json.leafTissueAnalysis ??\n  (isFoliarItem(json) ? json.response[0].analysis : null)\n);\nconst foliarAnalysis = findValue((json) => json.foliarAnalysis);\nconst applications   = findValue((json) => json.applications);\n\n// ---------------- Saída (formato idêntico ao anterior) ----------------\nlet response = [\n  // { json: { field: \"plantAdvices\", value: plantAdvices } },\n  { json: { field: \"soilAnalyses\", value: hasData(soilAnalyses) ? {soilAnalyses, fertilizerPlans, plantAdvices} : null } },\n//  { json: { field: \"fertilizerPlans\", value: fertilizerPlans } },\n  { json: { field: \"soilAnalysisHistory\", value: hasData(soilAnalysisHistory) ? soilAnalysisHistory : null } },\n  { json: { field: \"leafTissueAnalysis\", value: hasData(leafTissueAnalysis) ? {leafTissueAnalysis, foliarApplicationAdvices} : null } },\n  //  { json: { field: \"foliarProductivity\", value: {foliarAnalysis,applications} } },\n\n    // { json: { field: \"noMatch\", value: null } },\n];\n\nresponse = response.filter(item => item.json.value != null);\nreturn response;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1904,
+        1744
+      ],
+      "id": "c95625f8-b7ee-4b04-9273-3ad72ee93828",
+      "name": "splitSoilAnalysisAndRecomendations"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "0wGOyvQWFrc5JdtE",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/0wGOyvQWFrc5JdtE",
+          "cachedResultName": "Analyse Samples"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2800,
+        1728
+      ],
+      "name": "Call Analyse Samples",
+      "id": "192d426d-cf01-4756-8954-3561098260ab"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "94b67f53-bd1d-4de5-88ed-ef5280b2d409",
+              "name": "webHook",
+              "value": "={{ $execution.resumeUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2128,
+        1744
+      ],
+      "id": "4b64d34e-c720-455a-8c0b-f99dd981aef8",
+      "name": "Set WebHook"
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "limitWaitTime": true,
+        "resumeAmount": 10,
+        "resumeUnit": "minutes",
+        "options": {
+          "responseData": "={{ { executionIds: $(\"updateWasExecutedList\").isExecuted ? $('updateWasExecutedList').first()?.json?.wasExecuted : $('agreggateIds').first()?.json?.executionIds } }}"
+        }
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3568,
+        2272
+      ],
+      "id": "9ba340c0-ca10-4fe7-9b83-2000b178ca85",
+      "name": "Wait",
+      "webhookId": "00415d22-fdfe-44f6-874a-04255498fca8"
+    },
+    {
+      "parameters": {
+        "value": "={{ JSON.stringify($json) }}",
+        "dataPropertyName": "executionId"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        2784,
+        1920
+      ],
+      "id": "647d523a-2166-4b97-9ccf-7d293cbc7370",
+      "name": "Set ID"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2512,
+        1744
+      ],
+      "id": "dfb939a1-e719-4558-930f-c98b39690b8c",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        3216,
+        2256
+      ],
+      "id": "f9c11c6e-eb1a-4185-8da7-01015f53d892",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3b1e9cda-7c55-47a0-8380-497a4ab88245",
+              "name": "wasExecuted",
+              "value": "={{ ( $(\"updateWasExecutedList\").isExecuted ? $('updateWasExecutedList').first()?.json?.wasExecuted : $('agreggateIds').first()?.json?.executionIds || [] ).filter(id => id !== $json.body?.executionId) }}",
+              "type": "array"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4240,
+        2240
+      ],
+      "id": "0700a1f5-2dc1-40d2-88c0-727d3e1c1c18",
+      "name": "updateWasExecutedList"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn {\n  executionIds: $('Loop Over Items1').all().map(iten=> iten.json.executionId)\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3392,
+        2272
+      ],
+      "id": "cbadf4ff-2e4c-43d7-8bc5-0104f196f85e",
+      "name": "agreggateIds"
+    },
+    {
+      "parameters": {
+        "numberInputs": 5
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1664,
+        1696
+      ],
+      "id": "cd8a8e8f-d03b-40c9-aed3-d89bc5396091",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst result = {};\n\n// Se vier { blocos: [...] }, pega só o array\nconst unwrap = (v) => {\n  if (typeof v === 'string') {\n    try { v = JSON.parse(v); } catch (e) { return v; }\n  }\n  if (v && !Array.isArray(v) && typeof v === 'object' && Array.isArray(v.blocos)) {\n    return v.blocos;\n  }\n  return v;\n};\n\nconst toJsonOrEmpty = (v) => {\n  v = unwrap(v);\n  if (v === null || v === undefined) return '';\n  if (typeof v === 'string') {\n    const s = v.trim();\n    return ['', 'none', 'null', 'undefined', '[]', '{}'].includes(s) ? '' : s;\n  }\n  if (Array.isArray(v) && v.length === 0) return '';\n  if (typeof v === 'object' && Object.keys(v).length === 0) return '';\n  return JSON.stringify(v);\n};\n\nfor (const item of items) {\n  const body = item.json.body;\n  if (!body || !body.type || !body.result) continue;\n  result[body.type] = toJsonOrEmpty(body.result);\n}\n\nfor (const f of ['soilAnalyses', 'soilAnalysisHistory', 'leafTissueAnalysis']) {\n  if (result[f] === undefined) result[f] = '';\n}\n\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3872,
+        1696
+      ],
+      "id": "a0550df5-a915-43a4-ac4b-67e9bd9e0835",
+      "name": "aggregateResultsByType"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node — modo \"Run Once for All Items\"\n\ntry {\n  const inputItem = $input.first();\n  if (!inputItem || !inputItem.json) {\n    return [{ json: { error: \"No input item received.\" } }];\n  }\n\n  const input = inputItem.json;\n  \n  // CORREÇÃO 1: Acessar input.response e extrair o objeto 'analysis' de cada item\n  const responses = Array.isArray(input.response) ? input.response : [];\n  const validAnalyses = responses\n    .map(r => r.analysis)\n    .filter((a) => a && typeof a === \"object\");\n\n  if (validAnalyses.length === 0) {\n    return [{ json: { error: \"No valid analyses found in payload.\" } }];\n  }\n\nconst targetSectorId = input.sectorId ?? null;\n\nlet first = validAnalyses[0];\nlet sectorRaw = (Array.isArray(first.sectors) && first.sectors[0]) || {};\n\nif (targetSectorId) {\n  for (const a of validAnalyses) {\n    const match = (Array.isArray(a.sectors) ? a.sectors : []).find(\n      (s) => s && s._id === targetSectorId\n    );\n    if (match) {\n      first = a;\n      sectorRaw = match;\n      break;\n    }\n  }\n}\n  \n  const sector = {\n    name: sectorRaw.name ?? null,\n    size: sectorRaw.size ?? null,\n    plantingDate: sectorRaw.plantingDate ? String(sectorRaw.plantingDate).split(\"T\")[0] : null,\n    amountOfPlants: sectorRaw.amountOfPlants ?? null,\n    plantSpacing: sectorRaw.plantSpacing ?? null,\n    lineSpacing: sectorRaw.lineSpacing ?? null,\n  };\n\n  const property = {\n    name: first.prop?.name ?? null,\n    state: first.prop?.state ?? null,\n  };\n\n  const area = {\n    name: first.area?.name ?? null,\n    culture: first.area?.culture ?? null,\n  };\n\n  const sectorIdRef = sectorRaw._id ?? null;\n  const propertyIdRef = first.prop?._id ?? null;\n  const areaIdRef = first.area?._id ?? null;\n\n  const warnings = [];\n  const samples = [];\n\n  for (const a of validAnalyses) {\n    if (!a.name) {\n      warnings.push(\"An analysis without 'name' was skipped.\");\n      continue;\n    }\n\n    const s = (Array.isArray(a.sectors) && a.sectors[0]) || {};\n    if (sectorIdRef && s._id !== sectorIdRef) warnings.push(`Sample \"${a.name}\" belongs to a different sector.`);\n    if (propertyIdRef && a.prop?._id !== propertyIdRef) warnings.push(`Sample \"${a.name}\" belongs to a different property.`);\n    if (areaIdRef && a.area?._id !== areaIdRef) warnings.push(`Sample \"${a.name}\" belongs to a different area.`);\n\n    const parsedValues = {};\n    \n    // CORREÇÃO 2: Ler diretamente de a.values, que contém as chaves e valores diretos (ex: \"K\": 122)\n    const sourceValues = a.values && typeof a.values === \"object\" ? a.values : {};\n\n    for (const [param, val] of Object.entries(sourceValues)) {\n      if (val === null || val === undefined) {\n        warnings.push(`Parameter \"${param}\" in sample \"${a.name}\" has no value and was skipped.`);\n        continue;\n      }\n      \n      // Mantém apenas o valor. Como o payload não tem mais unidades complexas separadas, o dictionary de conversions foi removido.\n      parsedValues[param] = val; \n    }\n\n    const sampledAt = a.sampledAt ? String(a.sampledAt).split(\"T\")[0] : null;\n\n    samples.push({\n      name: a.name,\n      sampledAt,\n      values: parsedValues,\n    });\n  }\n\n  // Ordenar por data de amostragem\n  samples.sort((x, y) => {\n    const tX = x.sampledAt ? new Date(x.sampledAt).getTime() : Infinity;\n    const tY = y.sampledAt ? new Date(y.sampledAt).getTime() : Infinity;\n    return tX - tY;\n  });\n\n  const validDates = samples.map((s) => s.sampledAt).filter(Boolean);\n  const uniqueDates = [...new Set(validDates)];\n\n  const output = {\n    sector,\n    property,\n    area,\n    totalSamples: samples.length,\n    distinctDates: uniqueDates.length,\n    period: {\n      start: validDates[0] || null,\n      end: validDates[validDates.length - 1] || null,\n    },\n    samples,\n    ...(warnings.length > 0 ? { warnings } : {}),\n    chatInput: \"\"\n  };\n\n  return { json: {soilAnalysisHistory:output, }};\n\n} catch (err) {\n  const message = err instanceof Error ? err.message : String(err);\n  const stack = err instanceof Error ? err.stack : null;\n  return [{ json: { error: true, message, stack } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        1856
+      ],
+      "id": "fe78f1e4-40c6-470e-8dd6-ea3fb92412f3",
+      "name": "normalizaSamples",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Settings').item.json.base_url }}/flora/context/soil-analysis/latest/{{ $('Set Sector ID').item.json.sectorId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "quantity",
+              "value": "12"
+            },
+            {
+              "name": "start",
+              "value": "={{ $now.minus(5, 'year').toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "end",
+              "value": "={{ $now.toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "linkedToAdvice",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        976,
+        1856
+      ],
+      "id": "cb4b4e0d-ee7b-421d-805f-658e7c69a665",
+      "name": "Fetch History from Soil Analysis",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "uaQ7QplpatqkajQt",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Settings').item.json.base_url }}/flora/context/soil-analysis/latest/{{ $('Set Sector ID').item.json.sectorId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "quantity",
+              "value": "=1"
+            },
+            {
+              "name": "start",
+              "value": "={{ $now.minus(12, 'months').format('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "end",
+              "value": "={{ $now.format('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "linkedToAdvice",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        960,
+        1504
+      ],
+      "id": "fee3f2ce-10de-452b-a72c-3eabe711e4c4",
+      "name": "Fetch the Representative Soil Analysis",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "uaQ7QplpatqkajQt",
+          "name": "Header Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node — modo \"Run Once for All Items\"\ntry {\n  const nz = function (v, d) { return (v === undefined || v === null) ? (d === undefined ? null : d) : v; };\n\n  const inputItem = $input.first();\n  if (!inputItem || !inputItem.json) {\n    return [{ json: { error: \"No input item received.\" } }];\n  }\n  const input = inputItem.json;\n\n  const responses = Array.isArray(input.response) ? input.response : [];\n  const validEntries = responses.filter(function (r) { return r && r.analysis && typeof r.analysis === \"object\"; });\n  if (validEntries.length === 0) {\n    return [{ json: { error: \"No valid foliar analyses found in payload.\" } }];\n  }\n\n  const first = validEntries[0].analysis;\n  const sectorRaw = (Array.isArray(first.sectors) && first.sectors[0]) || {};\n  const sector = {\n    name: nz(sectorRaw.name),\n    size: nz(sectorRaw.size),\n    plantingDate: sectorRaw.plantingDate ? String(sectorRaw.plantingDate).split(\"T\")[0] : null,\n    amountOfPlants: nz(sectorRaw.amountOfPlants),\n    plantSpacing: nz(sectorRaw.plantSpacing),\n    lineSpacing: nz(sectorRaw.lineSpacing)\n  };\n  const property = { name: nz(first.prop && first.prop.name), state: nz(first.prop && first.prop.state) };\n  const area = { name: nz(first.area && first.area.name), culture: nz(first.area && first.area.culture) };\n\n  const sectorIdRef = nz(sectorRaw._id);\n  const propertyIdRef = nz(first.prop && first.prop._id);\n  const areaIdRef = nz(first.area && first.area._id);\n\n  const warnings = [];\n  const samples = [];\n\n  for (let i = 0; i < validEntries.length; i++) {\n    const entry = validEntries[i];\n    const a = entry.analysis;\n    if (!a.name) {\n      warnings.push(\"An analysis without 'name' was skipped.\");\n      continue;\n    }\n    const s = (Array.isArray(a.sectors) && a.sectors[0]) || {};\n    if (sectorIdRef && s._id !== sectorIdRef) warnings.push('Sample \"' + a.name + '\" belongs to a different sector.');\n    if (propertyIdRef && a.prop && a.prop._id !== propertyIdRef) warnings.push('Sample \"' + a.name + '\" belongs to a different property.');\n    if (areaIdRef && a.area && a.area._id !== areaIdRef) warnings.push('Sample \"' + a.name + '\" belongs to a different area.');\n\n    // Valores nutricionais foliares (N, P, K, Ca, Mg, S, B, Cu, Fe, Mn, Zn)\n    const parsedValues = {};\n    const sourceValues = a.values && typeof a.values === \"object\" ? a.values : {};\n    for (const param in sourceValues) {\n      const val = sourceValues[param];\n      if (val === null || val === undefined) {\n        warnings.push('Parameter \"' + param + '\" in sample \"' + a.name + '\" has no value and was skipped.');\n        continue;\n      }\n      parsedValues[param] = val;\n    }\n\n    // Recomendações de adubação foliar vinculadas a esta análise (se houver)\n    const advicesRaw = Array.isArray(entry.foliarApplicationAdvices) ? entry.foliarApplicationAdvices : [];\n    const advices = advicesRaw.map(function (adv) {\n      return {\n        name: nz(adv.name),\n        applicationDate: adv.applicationDate ? String(adv.applicationDate).split(\"T\")[0] : null,\n        products: (Array.isArray(adv.products) ? adv.products : []).map(function (p) {\n          return {\n            name: nz(p.productCommercialName && p.productCommercialName.name),\n            class: nz(p.productClass),\n            dose: nz(p.dose),\n            unit: nz(p.doseMeasurementUnit)\n          };\n        })\n      };\n    });\n\n    const sampleAt = a.sampleAt ? String(a.sampleAt).split(\"T\")[0] : null;\n    samples.push({\n      name: a.name,\n      sampleAt: sampleAt,\n      season: nz(a.season),\n      region: nz(a.region),\n      biennial: nz(a.biennial),\n      note: nz(a.note),\n      values: parsedValues,\n      linkedToAdvice: a.linkedToAdvice ? true : false,\n      advices: advices\n    });\n  }\n\n  samples.sort(function (x, y) {\n    const tX = x.sampleAt ? new Date(x.sampleAt).getTime() : Infinity;\n    const tY = y.sampleAt ? new Date(y.sampleAt).getTime() : Infinity;\n    return tX - tY;\n  });\n\n  const validDates = samples.map(function (s) { return s.sampleAt; }).filter(Boolean);\n  const uniqueDates = validDates.filter(function (v, idx, arr) { return arr.indexOf(v) === idx; });\n\n  const output = {\n    sector: sector,\n    property: property,\n    area: area,\n    totalSamples: samples.length,\n    distinctDates: uniqueDates.length,\n    period: { start: validDates[0] || null, end: validDates[validDates.length - 1] || null },\n    samples: samples,\n    chatInput: \"\"\n  };\n  if (warnings.length > 0) output.warnings = warnings;\nconst foliarApplicationAdvices = $input.first().json.response[0].foliarApplicationAdvices\n  return { json: { leafTissueAnalysis: output, foliarApplicationAdvices} };\n} catch (err) {\n  const message = err instanceof Error ? err.message : String(err);\n  const stack = err instanceof Error ? err.stack : null;\n  return [{ json: { error: true, message: message, stack: stack } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        1696
+      ],
+      "id": "cae0c747-3c1c-4842-b00b-c5ff73d2bc9b",
+      "name": "normalizaSamples1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Settings').item.json.base_url }}/flora/context/plant-analysis/latest/{{ $('Set Sector ID').item.json.sectorId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "quantity",
+              "value": "=1"
+            },
+            {
+              "name": "start",
+              "value": "={{ $now.minus(12, 'months').format('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "end",
+              "value": "={{ $now.format('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "=linkedToAdvice",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        944,
+        1712
+      ],
+      "id": "a56a5fc4-0489-4770-a770-bdc70fa668f0",
+      "name": "Fetch the Representative Leaf Tissue",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "uaQ7QplpatqkajQt",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6834d6f4-cbb7-48c1-adb7-8a9fac4359bb",
+              "leftValue": "={{ $json.body }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3776,
+        2272
+      ],
+      "id": "f9179a1e-1b36-47c4-8985-067a39ff5daf",
+      "name": "verifyIfTimeout"
+    },
+    {
+      "parameters": {
+        "tableId": "sector_analyses",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "sector_id",
+              "fieldValue": "={{ $json.sector_id }}"
+            },
+            {
+              "fieldId": "soilAnalyses",
+              "fieldValue": "={{ $('aggregateResultsByType').first().json.soilAnalyses }}"
+            },
+            {
+              "fieldId": "soilAnalysisHistory",
+              "fieldValue": "={{ $('aggregateResultsByType').first().json.soilAnalysisHistory }}"
+            },
+            {
+              "fieldId": "leafTissueAnalysis",
+              "fieldValue": "={{ $('aggregateResultsByType').first().json.leafTissueAnalysis }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "success"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5984,
+        2656
+      ],
+      "id": "66c9c6ba-5395-44a1-ae04-57218f31854a",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "sector_analyses",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sector_id",
+              "keyValue": "={{ $('Set Sector ID').first().json.sectorId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5472,
+        2608
+      ],
+      "id": "09aee364-9f30-4bc6-82ec-cf067357baab",
+      "name": "Get a row",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1ebc2164-283c-438b-b3af-40d300e7e83d",
+              "leftValue": "={{ $json.isEmpty() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5696,
+        2608
+      ],
+      "id": "794147d7-edd6-423c-b65d-242294373a23",
+      "name": "verifyIfAnalysisExist"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "sector_analyses",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sector_id",
+              "keyValue": "={{ $('Setup Sector ID1').item.json.sectorId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2400,
+        2016
+      ],
+      "id": "0d372036-391d-4d7e-8d96-0c5813981d1b",
+      "name": "Get a row1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "sector_analyses",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "sector_id",
+              "fieldValue": "={{ $('Setup Sector ID1').item.json.sectorId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1520,
+        2032
+      ],
+      "id": "ba3f855c-3129-4b2f-836f-ae427eed11f1",
+      "name": "Create a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b3e9e879-558c-4490-bebd-248dc3705118",
+              "name": "sectorId",
+              "value": "={{ $('HookFromFront').isExecuted ? $('Setup Sector ID1').item.json.sectorId: $('Create or update sumarize from sector').isExecuted ? \n$('Setup Sector ID').item.json.sectorId: $('Schedule Trigger').isExecuted ? $('Loop Over Items').item.json.sector_id : $('When clicking ‘Execute workflow’').item.json.sectorId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        1712
+      ],
+      "id": "dea4081a-6baf-4e67-a70d-f7a85fd6db9c",
+      "name": "Set Sector ID"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Settings1').item.json.base_url }}/flora/context/soil-analysis/latest/{{ $('Setup Sector ID1').item.json.sectorId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "quantity",
+              "value": "=1"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1936,
+        2096
+      ],
+      "id": "1049c36b-79b9-4b29-b2b5-c479b5345151",
+      "name": "Fetch to get Sector",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "uaQ7QplpatqkajQt",
+          "name": "Header Auth account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n  {\n    \"sector_id\": $('Setup Sector ID1').item.json.sectorId,\n    \"last_analysis_at\": $json.last_analysis_at,\n\"soilAnalyses\": $json.soilAnalyses,\n\"leafTissueAnalysis\": $json.leafTissueAnalysis,\n\"soilAnalysisHistory\": $json.soilAnalysisHistory,\n    \"hasSectorAnlysis\": $json.analysis_text != null\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1520,
+        1904
+      ],
+      "id": "fd2c8aa7-3cc5-43ad-bd84-d758f06a4e28",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"O setor não foi identificado para analise.\"\n}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1520,
+        2224
+      ],
+      "id": "df27b8df-eb26-4301-8597-7cc2fca748f9",
+      "name": "Respond Sector not Exists"
+    },
+    {
+      "parameters": {
+        "content": "### Adicionar Autenticação no WebHook\n",
+        "height": 176,
+        "width": 166,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2784,
+        2224
+      ],
+      "id": "579dae9a-d632-42ce-8ec8-f56e8d5d5f0d",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "path": "sector-sumarize",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "binaryPropertyName": "sectorId"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2960,
+        2016
+      ],
+      "id": "5495c080-78f0-4df4-891d-e642238757b3",
+      "name": "HookFromFront",
+      "webhookId": "39b1f1d3-ae57-40ef-8579-24aa68a19483"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "sector_analyses",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sector_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Delete sumirze from sector').item.json.body.sectorId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        784,
+        928
+      ],
+      "id": "4d6cdc49-e09f-4e5b-86d3-45071807b74f",
+      "name": "Delete a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sector-sumarize",
+        "authentication": "headerAuth",
+        "options": {
+          "allowedOrigins": "*",
+          "binaryPropertyName": "sectorId"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2928,
+        1440
+      ],
+      "id": "cb4f9ab7-6d06-4492-ae96-224c730d6d6d",
+      "name": "Create or update sumarize from sector",
+      "webhookId": "5ba02e78-81ff-41d7-abc9-9e62c191eba8",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xQQCdhv2ICucFkKJ",
+          "name": "WebHookAuthorization"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "DELETE",
+        "path": "sector-sumarize",
+        "options": {
+          "binaryPropertyName": "sectorId"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        400,
+        928
+      ],
+      "id": "a5e49e63-a39d-44e6-b675-032fe43f9b30",
+      "name": "Delete sumirze from sector",
+      "webhookId": "53c4fb90-95b7-475c-a0f1-e766ff689773"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "24677eed-0bb9-4cdd-aede-29231aa0aeb8",
+                    "leftValue": "={{ $json.isEmpty() }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sumarize_exists"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.isEmpty() }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "bd221b21-d345-4cc4-b00e-7075b92cd316"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "create"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2144,
+        2016
+      ],
+      "id": "56a090f1-ab91-418c-b58c-bfebbbc1518d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2800,
+        688
+      ],
+      "id": "37b5443c-d0b7-407e-a7c6-c1c66cee2fb3",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "sector_analyses",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "failed"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2464,
+        784
+      ],
+      "id": "11f29190-677b-4a0c-880c-994cf99a88f7",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -512,
+        720
+      ],
+      "id": "2354baf6-a377-44cc-82e4-d8c5b52315e0",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "sector_analyses",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sector_id",
+              "keyValue": "={{ $('Setup Sector ID').item.json.sectorId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2224,
+        1440
+      ],
+      "id": "6c92de4e-93ff-468d-8901-e07df3d82cdc",
+      "name": "Get a row2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "24677eed-0bb9-4cdd-aede-29231aa0aeb8",
+                    "leftValue": "={{ $json.isEmpty() }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sumarize_exists"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.isEmpty() }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "bd221b21-d345-4cc4-b00e-7075b92cd316"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "create"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2000,
+        1440
+      ],
+      "id": "6492a701-bc6e-42c5-ac56-cae4db8c7a6a",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Settings2').item.json.base_url }}/flora/context/soil-analysis/latest/{{ $('Setup Sector ID').item.json.sectorId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "quantity",
+              "value": "=1"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1664,
+        1552
+      ],
+      "id": "646c9356-b689-41bd-8c8e-27642e2839dc",
+      "name": "Fetch to get Sector1",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "uaQ7QplpatqkajQt",
+          "name": "Header Auth account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "tableId": "sector_analyses",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "sector_id",
+              "fieldValue": "={{ $('Setup Sector ID').item.json.sectorId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1392,
+        1536
+      ],
+      "id": "36d1c3b5-ed40-4f4b-9567-4bcd485301f6",
+      "name": "Create a row2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "sector_analyses",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sector_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Setup Sector ID').item.json.sectorId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "executing"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1632,
+        1360
+      ],
+      "id": "7150b1ec-18dd-414d-bae8-e4406cfc0f11",
+      "name": "Update a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2128,
+        704
+      ],
+      "id": "3824074a-2ac7-4c27-bd90-3ed4c0c7fc25",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "sector_analyses",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "executing"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2528,
+        560
+      ],
+      "id": "a7bea307-022b-4bab-8638-db11b16069d1",
+      "name": "Get many rows1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "98afa0c5-5d48-46f0-83d7-db8288e49adf",
+              "leftValue": "={{ $json.last_analysis_at.toDateTime().setZone('America/Sao_Paulo').diffToNow('minutes') }}",
+              "rightValue": -1.5,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        -2384,
+        560
+      ],
+      "id": "76417c6a-3992-4145-875c-f108dd72e3a6",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "sector_analyses",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sector_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Set Sector ID').first().json.sectorId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "failed"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3984,
+        2480
+      ],
+      "id": "58a21506-667c-4214-aa8e-ca82b5427f89",
+      "name": "Update a row2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "1dPY4JxbmmYvYtmg",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  sector_id: $('Setup Sector ID1').item.json.sectorId,\n  status: \"creating\",\n  hasSectorAnlysis: false\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1264,
+        2032
+      ],
+      "id": "f1bf8033-3d27-4704-949c-8d31ac28b2ac",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "content": "## View or Create Sector Analysis\n",
+        "height": 608,
+        "width": 1872
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3008,
+        1808
+      ],
+      "id": "74c04f8b-27db-46b1-bd28-a197ddda038e",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1cc98520-41e8-4eec-ad5c-4956162a9d76",
+              "name": "base_url",
+              "value": "https://practium-api-dev.utheuz.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2576,
+        2016
+      ],
+      "id": "ec0837a0-ab9c-4ec2-a61d-258d3c83289f",
+      "name": "Settings1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1cc98520-41e8-4eec-ad5c-4956162a9d76",
+              "name": "base_url",
+              "value": "https://practium-api-dev.utheuz.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2544,
+        1440
+      ],
+      "id": "9f492557-5dac-4e27-bea9-6928440d1d48",
+      "name": "Settings2"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Não deu tempo de executar"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        4272,
+        2480
+      ],
+      "id": "c277a733-405d-4468-8e79-ec3dfd1204aa",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "15b32eee-ce57-43c5-a893-3e0e212fba5f",
+              "leftValue": "={{ $(\"updateWasExecutedList\").isExecuted ? $('updateWasExecutedList').first()?.json?.wasExecuted : $('agreggateIds').first()?.json?.executionIds }}",
+              "rightValue": "={{ $json.body.executionId }}",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            },
+            {
+              "id": "ee41b6a4-bddf-481d-bb9b-e476e55e1d12",
+              "leftValue": "={{ $json.body.result != null || $json.body.status==\"error\"}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4032,
+        2256
+      ],
+      "id": "ac2d73c3-fac4-4758-b798-72d3721cc3d0",
+      "name": "canContinue",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "content": "## Create or Update Sector Analysis\n\n",
+        "height": 512,
+        "width": 1872
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3008,
+        1184
+      ],
+      "id": "d424f873-e022-413a-b085-18dc6fbe7c14",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "## Try fix analysis errors\n\n",
+        "height": 480,
+        "width": 864
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2864,
+        496
+      ],
+      "id": "3dfb63c6-2a43-4328-9fb3-8ab73069b070",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "## Execution Supervisor\n",
+        "height": 496,
+        "width": 1376,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3088,
+        2192
+      ],
+      "id": "970a70e3-c9a2-4d0c-b28e-619efea0e141",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "## Fetching Analysis and Recomendations\n",
+        "height": 736,
+        "width": 1776,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        112,
+        1456
+      ],
+      "id": "ce24dd7e-5876-4ac6-a3ac-b0838785f0ef",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "## Setup Execution ID\n",
+        "height": 496,
+        "width": 704
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2288,
+        1696
+      ],
+      "id": "8cdb7803-a52d-430c-86a4-844b53a5e15f",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "## Save Analysis",
+        "height": 464,
+        "width": 1200,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        5216,
+        2464
+      ],
+      "id": "47cff5fb-d48a-461b-8e17-05d85b20c56a",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "content": "## Delete Sector Anlysis\n",
+        "height": 272,
+        "width": 640,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        352,
+        848
+      ],
+      "id": "c703e1bc-0ceb-4c83-be27-beb556bc56ef",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Settings').item.json.base_url }}/flora/context/plant-analysis/latest/{{ $('Set Sector ID').item.json.sectorId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "quantity",
+              "value": "=1"
+            },
+            {
+              "name": "start",
+              "value": "={{ $now.minus(7, 'months').format('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "end",
+              "value": "={{ $now.format('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1312,
+        1696
+      ],
+      "id": "d5b7f5be-3211-496d-b253-21954d979ce9",
+      "name": "Fetch the Representative Leaf Tissue1",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "uaQ7QplpatqkajQt",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f584c334-c64c-4c28-9dc1-5edf7d2f3454",
+              "leftValue": "={{ $json.response }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1104,
+        1712
+      ],
+      "id": "78900bc2-9ab5-4db8-bad9-02a27095bc80",
+      "name": "verifyIfIsEmpty"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f584c334-c64c-4c28-9dc1-5edf7d2f3454",
+              "leftValue": "={{ $json.response }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        1504
+      ],
+      "id": "ec230c0b-c97e-4902-bdd1-94342164d0ec",
+      "name": "verifyIfIsEmpty1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Settings').item.json.base_url }}/flora/context/soil-analysis/latest/{{ $('Set Sector ID').item.json.sectorId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "quantity",
+              "value": "=1"
+            },
+            {
+              "name": "start",
+              "value": "={{ $now.minus(7, 'months').format('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "end",
+              "value": "={{ $now.format('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1344,
+        1488
+      ],
+      "id": "ff057bcd-fd6f-4c53-8b8d-65f318688fbd",
+      "name": "Fetch the Representative Soil Analysis1",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "uaQ7QplpatqkajQt",
+          "name": "Header Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e9fa1247-05b9-4110-93c0-2684a39bcc4e",
+              "leftValue": "={{ $('Schedule Trigger').isExecuted }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -768,
+        800
+      ],
+      "id": "303e75f4-d38a-4cc8-9378-b76161c65cbd",
+      "name": "verifyOrigin"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE sector_analyses\nSET\n  \"soilAnalyses\" = COALESCE(\n    NULLIF($j${{ $('aggregateResultsByType').first().json.soilAnalyses }}$j$, '')::jsonb,\n    \"soilAnalyses\"\n  ),\n  \"soilAnalysisHistory\" = COALESCE(\n    NULLIF($j${{ $('aggregateResultsByType').first().json.soilAnalysisHistory }}$j$, '')::jsonb,\n    \"soilAnalysisHistory\"\n  ),\n  \"leafTissueAnalysis\" = COALESCE(\n    NULLIF($j${{ $('aggregateResultsByType').first().json.leafTissueAnalysis }}$j$, '')::jsonb,\n    \"leafTissueAnalysis\"\n  ),\n  \"status\" = 'success'\nWHERE sector_id = $${{ $('Set Sector ID').first().json.sectorId }}$$;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        6144,
+        2592
+      ],
+      "id": "d1fcc7b9-a0f2-4830-ab32-71f43c86049e",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "PKDaOrqEkCEN3LxA",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## NOTA\nSe estiver vazio deveria limprar a analise do setor no banco",
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        1504
+      ],
+      "id": "9e3d3186-4c30-4616-be84-3d7a429c1678",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e9c99bde-cbdc-4375-9437-800b6d932453",
+              "name": "sectorId",
+              "value": "={{ $json.body.sectorId ?? $json.body.data?.sectorId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2736,
+        1440
+      ],
+      "id": "7861b475-a57d-47a5-a3b1-a158ff60ee17",
+      "name": "Setup Sector ID"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e9c99bde-cbdc-4375-9437-800b6d932453",
+              "name": "sectorId",
+              "value": "={{ $json.query.sectorId  }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2768,
+        2016
+      ],
+      "id": "616df1ed-c32d-4658-aa2c-0f72925ac88a",
+      "name": "Setup Sector ID1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Settings').item.json.base_url }}/flora/context/recomendations-and-planAnalyses",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start",
+              "value": "={{ $now.minus(2, 'year').format('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "end",
+              "value": "={{ $now.format('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "sectorId",
+              "value": "={{ $('Set Sector ID').item.json.sectorId }}"
+            },
+            {
+              "name": "type",
+              "value": "planting"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        992,
+        2032
+      ],
+      "id": "65cc041b-5b30-40bb-b67e-061fc89bee8f",
+      "name": "Fetch the Leaf Tissue History1",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "uaQ7QplpatqkajQt",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e14c2f53-035c-400e-bdde-fe3af06cee38",
+              "name": "=foliarAnalysis",
+              "value": "={{ $input.first().json.response }}",
+              "type": "array"
+            },
+            {
+              "id": "794b79a5-4186-42c3-a464-3467f86f1cb0",
+              "name": "=applications",
+              "value": "={{$('Fetch the Leaf Tissue History1').first().json.data}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1392,
+        2032
+      ],
+      "id": "1298036f-7552-4d02-a535-cd6c754670ce",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Settings').item.json.base_url }}/flora/context/plant-analysis/latest/{{ $('Set Sector ID').item.json.sectorId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "quantity",
+              "value": "=1"
+            },
+            {
+              "name": "start",
+              "value": "={{ $now.minus(12, 'months').format('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "end",
+              "value": "={{ $now.format('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "=linkedToAdvice",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1184,
+        2032
+      ],
+      "id": "c98dd3ca-cbde-4d41-a72e-88acb6fac01e",
+      "name": "Fetch the Representative Leaf Tissue3",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "uaQ7QplpatqkajQt",
+          "name": "Header Auth account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Set Sector ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "splitSoilAnalysisAndRecomendations": {
+      "main": [
+        [
+          {
+            "node": "Set WebHook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Analyse Samples": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set WebHook": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "verifyIfTimeout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set ID": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Call Analyse Samples",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [
+          {
+            "node": "aggregateResultsByType",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agreggateIds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateWasExecutedList": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agreggateIds": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "splitSoilAnalysisAndRecomendations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "aggregateResultsByType": {
+      "main": [
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "normalizaSamples": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Fetch History from Soil Analysis": {
+      "main": [
+        [
+          {
+            "node": "normalizaSamples",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch the Representative Soil Analysis": {
+      "main": [
+        [
+          {
+            "node": "verifyIfIsEmpty1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "normalizaSamples1": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Fetch the Representative Leaf Tissue": {
+      "main": [
+        [
+          {
+            "node": "verifyIfIsEmpty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verifyIfTimeout": {
+      "main": [
+        [
+          {
+            "node": "canContinue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "verifyIfAnalysisExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verifyIfAnalysisExist": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Sector ID": {
+      "main": [
+        [
+          {
+            "node": "Fetch the Representative Soil Analysis",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch the Representative Leaf Tissue",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch History from Soil Analysis",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch the Leaf Tissue History1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch to get Sector": {
+      "main": [
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Sector not Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HookFromFront": {
+      "main": [
+        [
+          {
+            "node": "Setup Sector ID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create or update sumarize from sector": {
+      "main": [
+        [
+          {
+            "node": "Setup Sector ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete sumirze from sector": {
+      "main": [
+        [
+          {
+            "node": "Delete a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch to get Sector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get many rows1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row2": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Update a row1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch to get Sector1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch to get Sector1": {
+      "main": [
+        [
+          {
+            "node": "Create a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row2": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row1": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows1": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings1": {
+      "main": [
+        [
+          {
+            "node": "Get a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings2": {
+      "main": [
+        [
+          {
+            "node": "Get a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row2": {
+      "main": [
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "verifyOrigin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "canContinue": {
+      "main": [
+        [
+          {
+            "node": "updateWasExecutedList",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "verifyOrigin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verifyIfIsEmpty": {
+      "main": [
+        [
+          {
+            "node": "Fetch the Representative Leaf Tissue1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Fetch the Representative Leaf Tissue1": {
+      "main": [
+        [
+          {
+            "node": "normalizaSamples1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verifyIfIsEmpty1": {
+      "main": [
+        [
+          {
+            "node": "Fetch the Representative Soil Analysis1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch the Representative Soil Analysis1": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verifyOrigin": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "verifyOrigin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup Sector ID": {
+      "main": [
+        [
+          {
+            "node": "Settings2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup Sector ID1": {
+      "main": [
+        [
+          {
+            "node": "Settings1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch the Leaf Tissue History1": {
+      "main": [
+        [
+          {
+            "node": "Fetch the Representative Leaf Tissue3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Fetch the Representative Leaf Tissue3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "pinData": {
+    "When clicking ‘Execute workflow’": [
+      {
+        "json": {
+          "sectorId": "6ae9026c5685cacc5f5ba0d3"
+        }
+      }
+    ],
+    "Create or update sumarize from sector": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.rvcarbon.com.br",
+            "user-agent": "PostmanRuntime/2.10.1",
+            "content-length": "48",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "authorization": "Secret_Flora_ResumeSetor_Adminx982739403",
+            "cache-control": "no-cache",
+            "cdn-loop": "cloudflare; loops=1",
+            "cf-connecting-ip": "2804:4368:434:a030:bd3f:b388:d16d:faa7",
+            "cf-ipcountry": "BR",
+            "cf-ray": "a440b2f2cff374c3-GRU",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "content-type": "application/json",
+            "postman-token": "567b9026-8f06-4440-8767-435dd58fdd05",
+            "x-forwarded-for": "104.22.10.170",
+            "x-forwarded-host": "n8n.rvcarbon.com.br",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "61a9644514e8",
+            "x-real-ip": "104.22.10.170"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "sectorId": "6aa944e969e17f8614b0d34d"
+          },
+          "webhookUrl": "https://n8n.rvcarbon.com.br/webhook/sector-sumarize",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "tags": []
+}

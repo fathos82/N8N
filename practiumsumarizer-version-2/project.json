@@ -1,0 +1,17 @@
+{
+  "name": "practiumsumarizer-version-2",
+  "source_workflow": {
+    "id": "ygr90gm4XlkHegwm",
+    "name": "PractiumSumarizer Version 2",
+    "nodes": 71,
+    "active": true
+  },
+  "sub_workflows": {
+    "Analyse Samples": "0wGOyvQWFrc5JdtE (Analyse Samples)"
+  },
+  "files": {
+    "ygr90gm4XlkHegwm": "practiumsumarizer-version-2.json",
+    "0wGOyvQWFrc5JdtE": "analyse-samples.json"
+  },
+  "deploy": "copias [TEST] via scripts/deploy.py"
+}

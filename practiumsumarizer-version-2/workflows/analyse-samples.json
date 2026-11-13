@@ -1,0 +1,946 @@
+{
+  "id": "0wGOyvQWFrc5JdtE",
+  "name": "Analyse Samples",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "97baccb0-06c3-4369-a5ce-0aafab9b3515",
+                    "leftValue": "={{ $json.field }}",
+                    "rightValue": "soilAnalysisHistory",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "soilAnalysisHistory"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.field }}",
+                    "rightValue": "soilAnalyses",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "42659997-d9c8-4343-bf30-d4b090b58b04"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "soilAnalyses"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "95e9994b-65bd-458d-ab90-61a9c085fcc1",
+                    "leftValue": "={{ $json.field }}",
+                    "rightValue": "leafTissueAnalysis",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "leafTissueAnalysis"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1457dee8-1fe4-4086-9ea3-f85c91f6d4c6",
+                    "leftValue": "={{ $json.field }}",
+                    "rightValue": "foliarProductivity",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "foliarProductivity"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "ignoreCase": true,
+          "renameFallbackOutput": ""
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2256,
+        2224
+      ],
+      "id": "951e9d6c-22b3-4961-b0ab-783ea7110d2d",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.1",
+          "mode": "list",
+          "cachedResultName": "gpt-5.1"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3488,
+        1984
+      ],
+      "id": "afb5b52e-2a6a-40db-ba54-114d389193d6",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "0LtvSfR1BUp6aWpc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "3dc43ec8-4e45-4615-88ad-ac24aaac8591",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        1984,
+        2256
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Start').item.json.webHook }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=result",
+              "value": "={{\n  $('Soil Anlysis History').isExecuted ? ($('Soil Anlysis History').first().json.output.blocos || '') :\n  $('Soil Analysis').isExecuted ? ($('Soil Analysis').first().json.output.blocos || '') :\n  $('Leaf Tissue').isExecuted ? ($('Leaf Tissue').first().json.output.blocos || '') :\n  ''\n}}"
+            },
+            {
+              "name": "status",
+              "value": "concluido"
+            },
+            {
+              "name": "executionId",
+              "value": "={{ $('Start').item.json.executionId }}"
+            },
+            {
+              "name": "type",
+              "value": "={{ $('Start').item.json.field }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4480,
+        2256
+      ],
+      "id": "55b7e2d5-d57c-43f3-9ed8-dfc7dbf4a717",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "waitBetweenTries": 500,
+      "maxTries": 5
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "23b014f7-adb6-4de2-a0fa-e4bd11787a63",
+              "leftValue": "={{ $json.executionIds }}",
+              "rightValue": "={{ $('Start').item.json.executionId }}",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4672,
+        2256
+      ],
+      "id": "556bbea1-c524-453a-93d6-798a849588ad",
+      "name": "canResend"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.1",
+          "mode": "list",
+          "cachedResultName": "gpt-5.1"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3440,
+        2400
+      ],
+      "id": "c6149bc7-176f-4a42-b5db-a568b4ed920c",
+      "name": "OpenAI Chat Model8",
+      "credentials": {
+        "openAiApi": {
+          "id": "0LtvSfR1BUp6aWpc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 0.3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4864,
+        2240
+      ],
+      "id": "10ee2de8-c6be-41c6-a250-6acefd86a91d",
+      "name": "Wait",
+      "webhookId": "4f4afa3f-88e2-480e-abf8-d6d53323c542"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Aqui estão os dados do setor para análise:\nSector:\n{{ JSON.stringify($json.llmContext.sector, null, 2)}}\nAnálise de solo:\n{{ JSON.stringify($json.llmContext.soilAnalysis, null, 2) }}\n\nRecomendações de correção do solo (calagem, gessagem, adubação de plantio):\n{{ JSON.stringify($json.llmContext.plantAdvices, null, 2) }}\n\nPlano de manutenção nutricional ao longo do ano (demanda x aplicado x saldo):\n{{ JSON.stringify($json.llmContext.fertilizerPlans, null, 2) }}\n\nGere o resumo didático conforme as instruções.",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Você é um engenheiro agrônomo consultor, especialista em fertilidade e correção de solo, que também é excelente em traduzir dados técnicos para produtores rurais que não têm formação técnica na área.\n\nSeu público-alvo NÃO é um especialista. Evite jargão sem explicação. Quando usar um termo técnico (ex: \"saturação por bases\", \"CTC\", \"calagem\", \"gessagem\"), explique em poucas palavras o que significa, de forma natural, sem soar como um glossário.\n\nEscreva de forma impessoal e objetiva, como um relatório técnico traduzido para linguagem simples — não como uma conversa direta com quem pediu a análise. Não use expressões como \"você tem duas recomendações\" ou \"o técnico que gerou a recomendação\"; prefira descrever o setor e os dados na terceira pessoa, como quem relata uma condição observada (ex: \"o setor apresenta...\", \"a análise indica...\", \"existem duas recomendações de correção registradas para este setor...\").\n\n## Sua tarefa\n\nVocê receberá três blocos de dados sobre o MESMO setor de uma lavoura:\n\n1. `soilAnalysis`: o resultado da análise química do solo — pH, alumínio, matéria orgânica, capacidade de troca de cátions (CTC), saturações e teores de nutrientes disponíveis no solo. É o \"raio-x\" da terra, não da planta.\n2. `plantAdvices`: recomendações de correção do solo — calagem (calcário, para corrigir acidez), gessagem (gesso agrícola, para melhorar cálcio em profundidade e reduzir alumínio tóxico) e adubação de plantio, incluindo os produtos utilizados. É um ajuste estrutural, geralmente feito uma vez, para preparar a base física-química do solo. Pode haver mais de um item nesse bloco.\n3. `fertilizerPlans`: o plano de manutenção nutricional ao longo do ano — quanto de cada nutriente (N, P2O5, K2O, Ca, Mg, S, B, Fe, Mn, Zn) a cultura demanda mês a mês, quanto já foi efetivamente aplicado (`applied`) e quanto ainda falta (`balance`). É a reposição contínua que sustenta a produtividade. Pode haver mais de um plano nesse bloco.\n\nIdentifique o setor pelo campo `sector.name` (não pelo nome da análise de solo, que é apenas um identificador de amostra). Use esse nome do setor logo no início da resposta.\n\nSua missão é produzir um resumo didático que **cruze essas três informações**, respondendo a perguntas implícitas do produtor:\n- Como está a saúde química do solo desse setor agora?\n- O que precisa ser corrigido, e a recomendação de correção resolve isso?\n- A manutenção nutricional ao longo do ano está em dia, atrasada, ou com saldo acumulado?\n\n## Como interpretar a análise de solo\n\nUse como referência geral de solo tropical agrícola (valores aproximados, literatura consolidada de fertilidade de solo):\n- pH em água ou CaCl2 ideal: entre 5,5 e 6,5. Abaixo de 5,0 indica solo ácido, o que geralmente vem acompanhado de alumínio tóxico às raízes.\n- Alumínio trocável (Al): acima de 0,5 cmolc/dm³ já é considerado preocupante; acima de 1,0 é alto e tende a limitar o desenvolvimento radicular.\n- Saturação por bases (satSB ou V%): idealmente acima de 50-60% para a maioria das culturas perenes bem estabelecidas.\n- Saturação por alumínio (satAl): acima de 20-25% já é limitante.\n- Matéria orgânica (MO): quanto maior, melhor a capacidade do solo reter nutrientes e água; valores abaixo de 2-2,5% (dag/kg) indicam solo com pouca reserva orgânica.\n- CTC (ctcT, capacidade de troca de cátions): indica a \"capacidade de estoque\" de nutrientes do solo. Valores baixos (abaixo de 5-6 cmolc/dm³) indicam solo com pouca capacidade de retenção, o que sugere que adubações fracionadas (aplicar menos, porém mais vezes) tendem a funcionar melhor do que uma dose única e concentrada.\n- Fósforo remanescente (Prem) e fósforo disponível (Pm1 ou Pres): valores baixos indicam solo com pouco fósforo disponível ou muita capacidade de \"prender\" o fósforo aplicado (solos argilosos costumam prender mais).\n\nUse essas faixas apenas como critério interno para classificar cada parâmetro como baixo, adequado ou alto — não afirme os números exatos da faixa como fato absoluto no texto final. Trate-as como uma referência geral, já que a faixa ideal pode variar conforme a cultura, a fase da lavoura e a metodologia técnica específica usada.\n\nAo comentar a recomendação de calagem ou gessagem, cite pelo menos um valor real do payload que justifique a prática (ex: o valor de saturação por bases, de alumínio ou de cálcio que motiva a correção), em vez de apenas explicar genericamente para que servem.\n\n## Como lidar com múltiplos itens\n\nSe houver mais de um item em `plantAdvices`, apresente-os como cenários ou opções distintas de correção registradas para o setor, sem presumir qual é mais recente ou mais válida — o payload não indica ordem temporal entre eles. Não escolha arbitrariamente um único cenário para reportar; mencione as diferenças relevantes entre eles de forma breve.\n\nSe houver mais de um item em `fertilizerPlans`, trate cada um como um plano de manutenção distinto e resuma a situação de cada um separadamente, sem misturar os números.\n\n## Como pensar (raciocínio interno — não exponha isso na resposta final)\n\n1. Identifique o setor (`sector.name`), a cultura e a data da coleta da amostra de solo.\n2. Avalie a análise de solo: o pH está adequado? Há alumínio tóxico? A saturação por bases está baixa? A matéria orgânica e a CTC indicam um solo com boa ou baixa capacidade de retenção? Escolha os 2-3 pontos mais relevantes, não liste todos os parâmetros.\n3. Avalie `plantAdvices`: existe recomendação de calagem e/ou gessagem? Isso é coerente com os problemas identificados na análise, usando pelo menos um número real como evidência? Se algum valor de `projectedResult` parecer fisicamente incoerente (ex: pH projetado mais baixo do que o pH atual após aplicar calcário, o que não é fisicamente esperado), não reporte esse número como fato — sinalize que o dado parece inconsistente e sugira validação com o responsável técnico, sem entrar em detalhes técnicos sobre \"por que é inconsistente\".\n4. Avalie `fertilizerPlans`: olhando o `balance` por período, os nutrientes estão sendo aplicados dentro do esperado (applied próximo do demand) ou existe um saldo (balance) se acumulando, indicando atraso na adubação? Destaque isso de forma simples, sem despejar a lista mês a mês — resuma a tendência geral (ex: \"a adubação de potássio está atrasada nos últimos meses\" ou \"a reposição nutricional está em dia\").\n\n5. Só então escreva a resposta final, já com a conclusão pronta — sem mostrar os passos acima ao usuário.\n## Formato da resposta final\n\nEscreva em português do Brasil, na terceira pessoa, em linguagem simples. Responda SOMENTE com um JSON válido, sem texto antes ou depois, sem crases e sem markdown, exatamente neste formato:\n\n{\n  \"blocos\": [\n    { \"titulo\": \"Diagnóstico do solo\", \"texto\": \"...\" },\n    { \"titulo\": \"Recomendações de correção\", \"texto\": \"...\" },\n    { \"titulo\": \"Manutenção nutricional\", \"texto\": \"...\" }\n  ]\n}\n\nRegras de conteúdo:\n- Cada \"texto\" tem de 2 a 4 frases corridas, sem negrito, bullets, emojis ou quebras de linha.\n- A primeira frase de cada texto é a conclusão do bloco: quem ler só ela deve entender a situação.\n- No bloco \"Diagnóstico do solo\", a primeira frase deve citar o nome do setor (`sector.name`) e incluir a data da coleta da amostra em algum ponto do texto.\n- Em \"Recomendações de correção\", se houver mais de um item em plantAdvices, apresente como cenários distintos e mencione as diferenças relevantes, sem escolher um deles.\n- Em \"Manutenção nutricional\", se houver mais de um plano em fertilizerPlans, resuma cada um separadamente, sem misturar os números.\n- Se um bloco não tiver dados no payload, use \"Sem dados registrados para este setor.\" como texto desse bloco.\n- Não repita o JSON recebido. Não invente dados, produtos ou doses que não estão no payload."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3424,
+        2224
+      ],
+      "id": "ebcdb51f-89dd-4eb0-8252-7eb19d2c97d6",
+      "name": "Soil Analysis",
+      "retryOnFail": true,
+      "waitBetweenTries": 100,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3632,
+        2832
+      ],
+      "id": "9661f738-f937-41a6-8d86-4047ba7a3bb6",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "0LtvSfR1BUp6aWpc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Aqui estão os dados do setor para análise:\nSector:\n{{ JSON.stringify($json.llmContext.sector, null, 2)}}\n\nAnálise de tecido foliar:\n{{ JSON.stringify($json.llmContext.leafTissueAnalysis, null, 2) }}\n\nRecomendações de aplicação foliar para o mesmo setor:\n{{ JSON.stringify($json.llmContext.foliarApplicationAdvices, null, 2) }}\n\nGere o resumo didático conforme as instruções.",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Você é um engenheiro agrônomo consultor, especialista em nutrição vegetal e análise foliar em cafeicultura, que também é excelente em traduzir dados técnicos para produtores rurais que não têm formação técnica na área.\n\nSeu público-alvo NÃO é um especialista. Evite jargão sem explicação. Quando usar um termo técnico (ex: \"macronutriente\", \"micronutriente\", \"quelato\", \"granação\", \"bienalidade\"), explique em poucas palavras o que significa, de forma natural, sem soar como um glossário.\n\nEscreva de forma impessoal e objetiva, na terceira pessoa, como um relatório técnico traduzido para linguagem simples — não como uma conversa direta com o produtor. Prefira construções como \"o setor apresenta...\", \"a análise indica...\", \"a aplicação registrada fornece...\". Não use \"você\", \"sua lavoura\" ou \"o técnico que recomendou\".\n\n## Sua tarefa\n\nVocê receberá dois blocos de dados sobre o MESMO setor de uma lavoura:\n\n1. `leafTissueAnalysis`: o resultado de UMA análise de tecido foliar — o que a planta efetivamente absorveu e está usando, medido nas folhas. É o \"exame de sangue\" da planta, diferente da análise de solo, que mostra o que está disponível na terra. Campos relevantes:\n   - `sectors[].name`: nome do setor (use este, não o `name` da análise, que é só o identificador da amostra). Se houver mais de um setor, cite todos.\n   - `sectors[].size` (hectares), `sectors[].plantingDate`, `sectors[].amountOfPlants`.\n   - `culture`: cultura da amostra (ex: \"coffeeConilon\", \"coffeeArabica\"; o campo `area.culture` pode trazer o mesmo dado como \"cafeConilon\"/\"cafeArabica\").\n   - `sampleAt`: data da coleta.\n   - `season` e `biennial`: época do ano e situação de bienalidade (alternância natural entre anos de carga alta e baixa do café).\n   - `note`: observação de campo sobre a fase da lavoura e a forma de coleta. Quando existir, é contexto importante para a interpretação.\n   - `values`: teores dos nutrientes. Macronutrientes (N, P, K, Ca, Mg, S) em g/kg; micronutrientes (B, Cu, Fe, Mn, Zn) em mg/kg. Confirme a unidade em `originalValues[nutriente].normalizedUnit` quando disponível.\n\n2. `foliarApplicationAdvices`: lista de recomendações de aplicação foliar associadas ao setor no período. Pode vir vazia, com um item ou com vários. Quando houver mais de um, todos fazem parte do mesmo contexto e devem ser lidos em conjunto, não como recomendações concorrentes. Campos relevantes:\n   - `applicationDate`: data prevista ou realizada da aplicação.\n   - `products[]`: `productCommercialName` (geralmente indica o nutriente fornecido e a fonte, ex: quelato de zinco, ácido bórico), `productClass`, `dose` e `doseMeasurementUnit`, `totalNecessary`.\n   - `syrupVolume`: volume de calda por hectare.\n   - `category`: rótulo interno de classificação. Não tire conclusões a partir dele; o que importa é o conteúdo dos produtos.\n\nSua missão é produzir um resumo didático que cruze essas duas informações, respondendo às perguntas implícitas do produtor:\n- Como está a nutrição da planta nesse setor agora, e o que explica esse quadro?\n- A aplicação foliar registrada responde aos problemas encontrados?\n- O que precisa ser acompanhado ou resolvido por outra via?\n\n## Base de referência para interpretação foliar\n\nFaixas de adequação para café arábica (valores aproximados, literatura consolidada — Malavolta et al.):\n\nMacronutrientes (g/kg): N 28–32; P 1,2–1,6; K 20–25; Ca 10–13; Mg 3,0–4,0; S 1,5–2,0.\nMicronutrientes (mg/kg): B 40–80; Cu 8–16; Fe 90–200; Mn 80–200; Zn 8–16.\n\nPara café conilon (canéfora), use essas faixas como referência geral aproximada, já que as faixas de conilon são próximas, mas não idênticas. Para qualquer outra cultura, use seu conhecimento agronômico consolidado. Em ambos os casos, informe em uma frase curta, no bloco de diagnóstico, que a avaliação usa uma referência geral para a cultura.\n\nUse essas faixas apenas como critério interno para classificar cada nutriente como baixo, no limite inferior, adequado, no limite superior ou alto. No texto, cite o valor real medido e a classificação, mas não escreva a faixa ideal como fato absoluto (ex: não escreva \"o ideal é entre 20 e 25\").\n\nSe os valores parecerem fora de qualquer escala plausível (ex: todos os nutrientes com o mesmo número, macronutrientes em unidades quando deveriam estar em dezenas, unidades trocadas), não afirme deficiência: diga que os dados parecem fora do padrão esperado e sugira confirmação com o laboratório ou com o responsável técnico.\n\n## Particularidades que devem orientar a interpretação\n\n- Fase da lavoura: se `note`, `season` ou `biennial` indicarem frutificação, granação (fase de enchimento dos grãos) ou safra carregada, considere que, nessa fase, os frutos puxam nutrientes das folhas, principalmente N e K, e que teores mais baixos nas folhas são esperados até certo ponto. Use isso para dar contexto, sem minimizar desvios grandes.\n- Idade da lavoura: calcule a idade aproximada a partir de `plantingDate` e `sampleAt` e use-a para contextualizar (ex: lavoura jovem na segunda safra).\n- Deficiências múltiplas: quando vários nutrientes estiverem abaixo da faixa ao mesmo tempo, isso sugere um quadro geral de demanda maior que a oferta, e não vários problemas isolados. Descreva assim, sem alarmismo.\n- Via de correção: a aplicação foliar é eficiente para micronutrientes (B, Zn, Mn, Cu, Fe), que a planta precisa em pequenas quantidades. Macronutrientes como N, K, Ca e Mg são exigidos em grandes quantidades e são supridos principalmente pela adubação via solo e pela calagem; a via foliar é só complementar para eles. Por isso, não trate como falha o fato de uma aplicação foliar não conter K ou N — diga que esses desvios dependem da adubação de solo, que não faz parte destes dados.\n- Datas: use apenas a parte da data de `sampleAt` e `applicationDate` (AAAA-MM-DD), ignorando horário e fuso, e escreva no formato DD/MM/AAAA. Se a data da aplicação for igual ou próxima à da coleta, a aplicação provavelmente foi definida a partir desta análise; diga isso como possibilidade, não como certeza.\n- Doses: cite dose e unidade exatamente como vierem no payload. Se a unidade vier incompleta (ex: \"/ha\" sem kg ou L), não complete por conta própria; escreva \"dose de 2 por hectare, conforme registrado\" ou equivalente.\n- Produtos: refira-se aos produtos pelo nutriente e pela fonte descritos no nome (ex: \"zinco na forma de quelato\", \"boro na forma de ácido bórico\"), sem citar marca ou fornecedor.\n\n## Como pensar (raciocínio interno — não exponha isso na resposta final)\n\n1. Identifique setor(es), tamanho, idade, cultura, data da coleta e fase da lavoura (pela `note`).\n2. Classifique cada nutriente de `values` em relação à faixa de referência.\n3. Separe macronutrientes e micronutrientes. Escolha os desvios mais relevantes: os maiores afastamentos da faixa e os de maior impacto na produção. Nutrientes adequados podem ser citados em conjunto, numa frase, sem detalhamento individual.\n4. Avalie `foliarApplicationAdvices`:\n   - Vazia: registre que não há aplicação foliar associada ao período, de forma natural, sem soar como erro de sistema.\n   - Com itens: liste mentalmente quais nutrientes cada produto fornece. Cruze com os desvios: quais desvios são atendidos, quais micronutrientes deficientes ficaram de fora, quais produtos não correspondem a nenhuma deficiência aparente (podem ser preventivos; sinalize sem julgar) e quais desvios são de macronutrientes que dependem do solo.\n5. Defina o que acompanhar: nova análise foliar na mesma fase do próximo ciclo para comparação, verificação da adubação de solo para os macronutrientes em déficit, e validação técnica de qualquer dado que pareça inconsistente.\n6. Só então escreva a resposta final, já com a conclusão pronta.\n\n## Formato da resposta final\n\nEscreva em português do Brasil, na terceira pessoa, em linguagem simples. Responda SOMENTE com um JSON válido, sem texto antes ou depois, sem crases e sem markdown, exatamente neste formato:\n\n{\n  \"blocos\": [\n    { \"titulo\": \"Diagnóstico nutricional\", \"texto\": \"...\" },\n    { \"titulo\": \"Nutrientes em destaque\", \"texto\": \"...\" },\n    { \"titulo\": \"Aplicação foliar registrada\", \"texto\": \"...\" },\n    { \"titulo\": \"Pontos de acompanhamento\", \"texto\": \"...\" }\n  ]\n}\n\nConteúdo de cada bloco:\n\n- \"Diagnóstico nutricional\": a primeira frase é a conclusão geral sobre o estado nutricional do setor (ex: equilibrado, com deficiências pontuais, com deficiências generalizadas) e cita o nome do setor. Em seguida, contextualize: data da coleta, cultura, idade aproximada da lavoura, fase registrada na observação de campo e como essa fase ajuda a explicar o quadro. Informe que a avaliação usa uma referência geral para a cultura.\n- \"Nutrientes em destaque\": a primeira frase resume quais grupos de nutrientes estão em situação mais crítica. Detalhe os desvios mais relevantes com o valor medido, a unidade e a classificação (baixo, no limite, adequado, alto), explicando em poucas palavras para que serve cada nutriente citado na planta. Separe macro e micronutrientes no texto. Nutrientes adequados podem ser agrupados em uma frase.\n- \"Aplicação foliar registrada\": a primeira frase diz se a aplicação atende ou não aos principais desvios encontrados. Depois, descreva o que foi registrado (nutrientes, fontes, doses, data) e faça o cruzamento: o que está coberto, o que ficou de fora entre os micronutrientes, e quais desvios de macronutrientes dependem da adubação de solo. Se não houver aplicação registrada, diga isso de forma natural e comente quais desvios seriam candidatos à correção foliar.\n- \"Pontos de acompanhamento\": a primeira frase é a principal orientação prática. Em seguida, cite o que monitorar e como (ex: nova análise foliar na mesma fase do próximo ciclo, revisão da adubação de solo para os macronutrientes em déficit, confirmação de dados inconsistentes). A última frase deve reforçar, de forma breve e discreta, que o resumo é um apoio informativo e que decisões técnicas devem ser validadas por um engenheiro agrônomo responsável pela área.\n\nRegras de conteúdo:\n- Cada \"texto\" é escrito em frases corridas, sem negrito, bullets, emojis ou quebras de linha. Use o tamanho necessário para cobrir o conteúdo do bloco com clareza — em geral entre 3 e 6 frases —, sem enchimento e sem repetir informações de outro bloco.\n- A primeira frase de cada texto é a conclusão do bloco: quem ler só ela deve entender a situação.\n- O nome do setor aparece uma única vez em toda a resposta, na primeira frase do bloco \"Diagnóstico nutricional\".\n- Datas no formato DD/MM/AAAA.\n- Números como vieram no payload, com vírgula decimal (ex: 16,9 g/kg).\n- Não encerre nenhum bloco com frase de resumo que repita o que já foi dito.\n- Se `leafTissueAnalysis` não tiver valores, use \"Sem dados registrados para este setor.\" nos blocos \"Diagnóstico nutricional\" e \"Nutrientes em destaque\".\n- Não repita o JSON recebido. Não invente dados, produtos, doses, unidades ou causas que não estão no payload."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3632,
+        2656
+      ],
+      "id": "2a3cc588-4005-4d68-b138-505c5256744e",
+      "name": "Leaf Tissue",
+      "retryOnFail": true,
+      "waitBetweenTries": 100,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * n8n Code Node — Preparação do llmContext para o resumo de análise foliar — formato novo do backend\n *\n * Entrada (item único):\n *   { json: { field, value: { leafTissueAnalysis, foliarApplicationAdvices }, webHook, executionId } }\n *\n * Saída (item único):\n *   { llmContext: { sector, culture, leafTissueAnalysis, leafTissueAnalysisHistory,\n *                   foliarApplicationAdvices, associationStatus, dataWarnings }, _flowControl }\n *\n * O que mudou no formato do backend (e quebrou a versão anterior):\n *  - A análise agora é um objeto plano: não existe mais \"samples\" nem \"period\".\n *    sampleAt, season, biennial, note e values ficam direto na análise.\n *  - O setor vem em \"sectors\" (array), não mais em \"sector\".\n *  - values são números puros; as unidades vêm em originalValues.\n *\n * Regras decididas AQUI (a IA não reavalia):\n *  1. Setor e cultura saem só da análise foliar de referência (a mais recente).\n *     Área e propriedade não entram.\n *  2. Se vierem várias análises, ficam a 1ª e a última de cada ano; a mais recente\n *     é a referência e as demais vão para leafTissueAnalysisHistory.\n *  3. Ancoragem das recomendações de aplicação foliar à análise de referência:\n *       a) mesmo setor (por _id; se não houver _id, por nome)\n *       b) applicationDate não pode ser ANTERIOR à coleta\n *       c) applicationDate não pode passar de 60 dias APÓS a coleta\n *       d) ficam todas as que passarem, da mais próxima da coleta para a mais distante\n *  4. dataWarnings lista o que veio vazio/inconsistente e o que foi descartado.\n *\n * Ainda aceita o formato antigo (análise com \"samples\"): cada amostra vira uma análise.\n */\ntry {\n  const inputItem = $input.first();\n  if (!inputItem || !inputItem.json) {\n    return [{ json: { error: \"No input item received.\" } }];\n  }\n\n  const ABSENT = \"ausente\";\n  const DAY_MS = 24 * 60 * 60 * 1000;\n  const MAX_DAYS_AFTER = 60; // ~2 meses\n\n  const _flowControl = {\n    webHook: inputItem.json.webHook || ABSENT,\n    executionId: inputItem.json.executionId || ABSENT,\n  };\n\n  // ===== 0. Leitura tolerante do payload =====\n  let v = inputItem.json.value;\n  if (typeof v === \"string\") {\n    try {\n      v = JSON.parse(v);\n    } catch (e) {\n      v = null;\n    }\n  }\n  if (!isObj(v)) {\n    return [{ json: { error: \"Missing or invalid 'value' in payload.\" } }];\n  }\n\n  const candidate = v.leafTissueAnalysis ?? v.leafTissueAnalyses ?? (isObj(v.values) || Array.isArray(v.samples) ? v : undefined);\n\n  // Formato antigo: { sector, samples: [...] } -> cada amostra herda setor/cultura do pai\n  const rawList = toArray(candidate)\n    .filter(isObj)\n    .flatMap((a) =>\n      Array.isArray(a.samples)\n        ? a.samples.filter(isObj).map((s) => ({\n            ...s,\n            sectors: s.sectors || a.sectors || (a.sector ? [a.sector] : undefined),\n            area: s.area || a.area,\n            culture: s.culture || a.culture,\n          }))\n        : [a]\n    )\n    .filter((a) => Object.keys(a).length > 0);\n\n  if (rawList.length === 0) {\n    return [\n      {\n        json: {\n          error:\n            \"Missing or invalid 'leafTissueAnalysis' in payload. Chaves recebidas em value: [\" +\n            Object.keys(v).join(\", \") +\n            \"]\",\n        },\n      },\n    ];\n  }\n\n  const warnings = [];\n\n  // ===== 1. Seleção: 1ª e última de cada ano; referência = a mais recente =====\n  const { selected, undatedCount } = selectFirstLastPerYear(rawList);\n  if (selected.length > 0 && undatedCount > 0) {\n    warnings.push(`${undatedCount} análise(s) foliar(es) sem data de coleta válida foram ignoradas.`);\n  }\n  const finalSelection = selected.length > 0 ? selected : [{ raw: rawList[0], year: null }];\n  const referenceRaw = finalSelection[finalSelection.length - 1].raw;\n  const historyEntries = finalSelection.slice(0, -1);\n\n  // ===== 2. Setor e cultura: fonte única = análise de referência =====\n  const sectorRaw =\n    (Array.isArray(referenceRaw.sectors) && referenceRaw.sectors.find(isObj)) ||\n    (isObj(referenceRaw.sector) ? referenceRaw.sector : null) ||\n    (isObj(v.sector) ? v.sector : null) ||\n    {};\n\n  const sector = {\n    name: sectorRaw.name || ABSENT,\n    size: sectorRaw.size ?? ABSENT,\n    plantingDate: sectorRaw.plantingDate ? String(sectorRaw.plantingDate).split(\"T\")[0] : ABSENT,\n    amountOfPlants: sectorRaw.amountOfPlants ?? ABSENT,\n    plantSpacing: sectorRaw.plantSpacing ?? ABSENT,\n    lineSpacing: sectorRaw.lineSpacing ?? ABSENT,\n  };\n  if (!sectorRaw._id && !sectorRaw.name) {\n    warnings.push(\"A análise foliar veio sem setor; não é possível associar recomendações de aplicação a ela.\");\n  }\n\n  // A IA usa a cultura para escolher a tabela de referência nutricional.\n  const culture = referenceRaw.area?.culture || referenceRaw.culture || v.area?.culture || ABSENT;\n  if (referenceRaw.area?.culture && referenceRaw.culture && referenceRaw.area.culture !== referenceRaw.culture) {\n    warnings.push(\n      `A cultura vem com dois códigos diferentes no cadastro: \"${referenceRaw.area.culture}\" (área) e \"${referenceRaw.culture}\" (análise). Foi usado o da área.`\n    );\n  }\n\n  // ===== 3. Análise de referência + histórico =====\n  const leafTissueAnalysis = buildLeafAnalysis(referenceRaw, ABSENT);\n  const historyResult = historyEntries.map((e) => ({ year: e.year ?? ABSENT, ...buildLeafAnalysis(e.raw, ABSENT) }));\n  const leafTissueAnalysisHistory = historyResult.length > 0 ? historyResult : ABSENT;\n\n  if (leafTissueAnalysis.values === ABSENT) {\n    warnings.push(`A análise foliar \"${leafTissueAnalysis.name}\" veio sem nenhum teor de nutriente.`);\n  }\n\n  // ===== 4. Recomendações: dedup por _id =====\n  const seenIds = new Set();\n  const advices = toArray(v.foliarApplicationAdvices).filter((adv) => {\n    if (!isObj(adv)) return false;\n    if (!adv._id) return true;\n    if (seenIds.has(adv._id)) return false;\n    seenIds.add(adv._id);\n    return true;\n  });\n\n  // ===== 5. Ancoragem: mesmo setor + janela de 0 a 60 dias após a coleta =====\n  const anchorT = Date.parse(sampleDateOf(referenceRaw));\n  const discarded = { otherSector: 0, noDate: 0, before: 0, tooLate: 0 };\n  const matched = [];\n\n  const sameSector = (adv) =>\n    toArray(adv.sectors).some((s) =>\n      isObj(s) && (sectorRaw._id && s._id ? s._id === sectorRaw._id : !!sectorRaw.name && s.name === sectorRaw.name)\n    );\n\n  for (const adv of advices) {\n    if (!sameSector(adv)) {\n      discarded.otherSector++;\n      continue;\n    }\n    const appT = Date.parse(adv.applicationDate);\n    if (Number.isNaN(anchorT) || Number.isNaN(appT)) {\n      discarded.noDate++;\n      continue;\n    }\n    const diffDays = Math.round((appT - anchorT) / DAY_MS);\n    if (diffDays < 0) discarded.before++;\n    else if (diffDays > MAX_DAYS_AFTER) discarded.tooLate++;\n    else matched.push({ adv, diffDays });\n  }\n  matched.sort((a, b) => a.diffDays - b.diffDays);\n\n  if (Number.isNaN(anchorT) && advices.length > 0) {\n    warnings.push(\"A análise foliar não tem data de coleta válida; nenhuma recomendação de aplicação pôde ser associada.\");\n  }\n  if (discarded.otherSector) warnings.push(`${discarded.otherSector} recomendação(ões) de aplicação foliar de outro setor foram descartadas.`);\n  if (discarded.noDate && !Number.isNaN(anchorT)) warnings.push(`${discarded.noDate} recomendação(ões) de aplicação foliar sem data de aplicação foram descartadas.`);\n  if (discarded.before) warnings.push(`${discarded.before} recomendação(ões) de aplicação foliar anteriores à coleta foram descartadas.`);\n  if (discarded.tooLate) warnings.push(`${discarded.tooLate} recomendação(ões) de aplicação foliar com mais de ${MAX_DAYS_AFTER} dias após a coleta foram descartadas.`);\n\n  if (advices.length === 0) {\n    warnings.push(\"foliarApplicationAdvices veio vazio: nenhuma recomendação de aplicação foliar foi recebida.\");\n  }\n  if (referenceRaw.linkedToAdvice === true && matched.length === 0) {\n    warnings.push(\n      `A análise \"${leafTissueAnalysis.name}\" está marcada como vinculada a uma recomendação (linkedToAdvice), mas nenhuma recomendação foi associada a ela.`\n    );\n  }\n\n  // ===== 6. Limpeza das recomendações associadas (sem repetir setor/área/propriedade) =====\n  const foliarApplicationAdvices = matched.map(({ adv, diffDays }) => {\n    const products = toArray(adv.products).filter(isObj);\n    if (products.length === 0) {\n      warnings.push(`Recomendação \"${adv.name || adv._id}\": veio sem produtos.`);\n    }\n    return {\n      name: adv.name || ABSENT,\n      category: adv.category || ABSENT,\n      applicationDate: String(adv.applicationDate).split(\"T\")[0],\n      daysAfterSampling: diffDays,\n      tankVolume: adv.tankVolume ?? ABSENT,\n      syrupVolume: adv.syrupVolume ?? ABSENT,\n      tanksToPrepare: adv.tanksToPrepare ?? ABSENT,\n      products:\n        products.length > 0\n          ? products.map((p) => ({\n              name: p.productCommercialName || p.product?.name || ABSENT,\n              tradeMark: p.productTradeMark || ABSENT,\n              class: p.productClass || ABSENT,\n              dose: p.dose ?? ABSENT,\n              doseUnit: p.doseMeasurementUnit || ABSENT,\n              quantityPerTank: p.quantityPerTank ?? ABSENT,\n              totalNecessary: p.totalNecessary ?? ABSENT,\n            }))\n          : ABSENT,\n    };\n  });\n\n  return [\n    {\n      json: {\n        llmContext: {\n          sector,\n          culture,\n          leafTissueAnalysis,\n          leafTissueAnalysisHistory,\n          foliarApplicationAdvices,\n          // A associação já foi decidida aqui; a IA só usa o resultado.\n          associationStatus: foliarApplicationAdvices.length > 0 ? \"matched\" : \"none\",\n          dataWarnings: warnings.length > 0 ? [...new Set(warnings)] : ABSENT,\n        },\n        _flowControl,\n      },\n    },\n  ];\n} catch (err) {\n  const message = err instanceof Error ? err.message : String(err);\n  return [{ json: { error: message } }];\n}\n\n// ===== FUNÇÕES AUXILIARES =====\n\nfunction toArray(v) {\n  return Array.isArray(v) ? v : v ? [v] : [];\n}\n\nfunction isObj(v) {\n  return v !== null && typeof v === \"object\" && !Array.isArray(v);\n}\n\n// A análise foliar usa \"sampleAt\"; aceita \"sampledAt\" por segurança.\nfunction sampleDateOf(raw) {\n  return raw.sampleAt || raw.sampledAt || null;\n}\n\n// Primeira e última análise de cada ano (pela data de coleta), em ordem cronológica.\nfunction selectFirstLastPerYear(list) {\n  const dated = list\n    .map((raw) => ({ raw, t: Date.parse(sampleDateOf(raw)) }))\n    .filter((x) => !Number.isNaN(x.t))\n    .sort((a, b) => a.t - b.t);\n\n  const byYear = new Map();\n  for (const item of dated) {\n    const year = new Date(item.t).getUTCFullYear();\n    if (!byYear.has(year)) byYear.set(year, { first: item, last: item });\n    else byYear.get(year).last = item;\n  }\n\n  const selected = [];\n  for (const [year, { first, last }] of byYear) {\n    selected.push({ raw: first.raw, year });\n    if (last !== first) selected.push({ raw: last.raw, year });\n  }\n  return { selected, undatedCount: list.length - dated.length };\n}\n\n// Junta values (números) com originalValues (unidades). Aceita também values já\n// no formato { value, unit, normalizedValue, normalizedUnit }.\nfunction buildLeafAnalysis(raw, ABSENT) {\n  const flat = isObj(raw.values) ? raw.values : {};\n  const detailed = isObj(raw.originalValues) ? raw.originalValues : {};\n\n  const values = {};\n  const conversions = {};\n  const params = new Set([...Object.keys(flat), ...Object.keys(detailed)]);\n\n  for (const param of params) {\n    const info = isObj(flat[param]) ? flat[param] : isObj(detailed[param]) ? detailed[param] : {};\n    const plain = isObj(flat[param]) ? undefined : flat[param];\n\n    const val = plain ?? info.normalizedValue ?? info.value;\n    if (val === undefined || val === null || val === \"\") continue;\n\n    const unit = info.normalizedUnit ?? info.unit ?? \"\";\n    values[param] = unit ? `${val} ${unit}` : `${val}`;\n\n    // Só registra conversão quando o laudo original difere do valor normalizado\n    const hasOriginal = info.value !== undefined && info.value !== null;\n    const valueChanged = hasOriginal && info.normalizedValue != null && info.value !== info.normalizedValue;\n    const unitChanged = hasOriginal && info.unit && info.normalizedUnit && info.unit !== info.normalizedUnit;\n    if (valueChanged || unitChanged) {\n      conversions[param] = `original: ${info.value} ${info.unit ?? \"\"}`.trim();\n    }\n  }\n\n  const date = sampleDateOf(raw);\n  return {\n    id: raw._id || ABSENT,\n    name: raw.name || ABSENT,\n    sampleAt: date ? String(date).split(\"T\")[0] : ABSENT,\n    season: raw.season || ABSENT,\n    biennial: raw.biennial || ABSENT,\n    note: raw.note ? String(raw.note).replace(/\\s+/g, \" \").trim() : ABSENT,\n    values: Object.keys(values).length > 0 ? values : ABSENT,\n    conversions: Object.keys(conversions).length > 0 ? conversions : ABSENT,\n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3216,
+        2672
+      ],
+      "id": "169518d5-adf1-428f-9624-0cb7ad0a7592",
+      "name": "normalizeFoliar",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analise a evolução do solo no setor \"{{$json.value.sector.name}}\", com base nas amostras abaixo, ordenadas cronologicamente:\n{{ JSON.stringify($json.value.samples) }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Você é um engenheiro agrônomo especialista em fertilidade e manejo de solo, com foco em cafeicultura brasileira, que também é excelente em traduzir dados técnicos para produtores rurais sem formação técnica na área. Sua tarefa é analisar séries históricas de análises de solo de uma mesma área ou setor e resumir a evolução da qualidade do solo ao longo do tempo.\n\nSeu público-alvo NÃO é um especialista. Evite jargão sem explicação. Quando usar um termo técnico (ex: \"saturação por bases\", \"CTC\", \"alumínio trocável\"), explique em poucas palavras o que significa, de forma natural, sem soar como um glossário.\n\nEscreva de forma impessoal e objetiva, na terceira pessoa, como um relatório técnico traduzido para linguagem simples (ex: \"a área apresenta...\", \"a série indica...\").\n\n## Regras de interpretação\n\n1. Trabalhe APENAS com os dados fornecidos. Nunca invente valores, datas ou amostras que não estejam no JSON de entrada.\n\n2. Se houver menos de 2 amostras com datas (`sampledAt`) diferentes para a mesma área, não é possível falar em \"progressão histórica\". Nesse caso, trate os dados como variabilidade entre amostras dentro do talhão e diga isso explicitamente, sem simular uma evolução temporal que não existe. Quando houver mais de uma amostra na mesma data (ou sempre que citar valores de mais de uma amostra lado a lado), identifique cada valor pelo nome da amostra (`name`) a que pertence. Nunca cite números soltos sem deixar claro de qual amostra é cada um.\n\n3. Agrupe os parâmetros nas seguintes categorias:\n   - Acidez e correção: pHCaCl2, pHagua, Al, HAl, satAl\n   - Capacidade de troca e bases: SB, ctcE, ctcT, satSB, CaMg\n   - Macronutrientes: Pm1, Pres, K, Ca, Mg, S, satCa, satMg, satK\n   - Micronutrientes: B, Cu, Fe, Mn, Zn, Na\n   - Matéria orgânica: MO, Prem\n\n4. Para cada categoria, avalie os parâmetros usando as faixas de referência abaixo para a cultura de {{$json.value.area.culture}} (baixo / médio / adequado / alto):\n\n   [TABELA DE REFERÊNCIA A DEFINIR: ex: CFSEMG 5ª aproximação ou a que vocês usam internamente]\n\n   Use essas faixas apenas como critério interno para classificar cada parâmetro. Não afirme números exatos de faixa ideal como fato absoluto no texto final (ex: não escreva \"o ideal é entre X e Y\"). Trate a avaliação como referência geral, já que a faixa ideal pode variar conforme a fase da lavoura e a metodologia técnica usada.\n\n5. Quando houver 2 ou mais datas distintas, para cada parâmetro relevante mencione o valor inicial, o valor final e a variação (absoluta e percentual), além de dizer se a tendência é de melhora, piora ou estabilidade frente à faixa adequada.\n\n6. Não invente causas agronômicas (adubação, clima, manejo) que não estejam nos dados. Aponte apenas correlações possíveis como hipóteses, deixando claro que são hipóteses.\n\n7. Sobre qualidade física do solo: se o JSON não contiver dados físicos (textura, densidade, umidade, compactação), não aborde essa dimensão e apenas informe brevemente que não há dados físicos nesta análise. Se houver dados físicos que pareçam inconsistentes entre si (ex: percentual de argila muito baixo para uma textura classificada como argilosa), não afirme a classificação como fato: sinalize a inconsistência de forma breve e sugira verificação, sem especular a causa.\n\n## Como calcular as progressões (raciocínio interno, não exponha isso na resposta final)\n\n1. Liste todas as amostras em ordem cronológica por `sampledAt` e confirme quantas datas distintas existem. Se for menos de 2, siga a regra 2 e não execute os passos seguintes.\n2. Para cada parâmetro de cada categoria, pegue o valor na primeira amostra (mais antiga) e na última (mais recente).\n3. Calcule a variação absoluta (valor_final − valor_inicial) e a percentual ((valor_final − valor_inicial) / valor_inicial × 100), tratando o sinal corretamente. Se valor_inicial for zero, reporte apenas a variação absoluta.\n4. Classifique cada valor (inicial e final) segundo a tabela de referência: baixo / médio / adequado / alto.\n5. Cruze a variação com a classificação: se o valor se moveu em direção à faixa adequada, é melhora; se se afastou, é piora; se oscilou pouco e manteve a classificação, é estabilidade. Um valor que aumentou não é automaticamente melhora (ex: alumínio subindo é piora).\n6. Se houver 3 ou mais amostras, verifique se a progressão é consistente ou se há oscilação no meio da série (ex: melhora e depois piora). Mencione oscilações relevantes quando o meio da série contar uma história diferente da comparação entre os extremos.\n7. Em cada categoria, priorize os 2 a 3 parâmetros de maior relevância agronômica ou maior variação. Não reporte todos com o mesmo peso.\n8. Só depois de concluir tudo isso, defina a tendência geral (solo melhorando, piorando ou estável) e escreva a resposta final, já com a conclusão pronta.\n\n## Formato da resposta final\n\nEscreva em português do Brasil, na terceira pessoa, em linguagem simples. Responda SOMENTE com um JSON válido, sem texto antes ou depois, sem crases e sem markdown, exatamente neste formato:\n\n{\n  \"blocos\": [\n    { \"titulo\": \"Visão geral\", \"texto\": \"...\" },\n    { \"titulo\": \"Acidez e saturação por bases\", \"texto\": \"...\" },\n    { \"titulo\": \"Macro e micronutrientes\", \"texto\": \"...\" },\n    { \"titulo\": \"Matéria orgânica\", \"texto\": \"...\" }\n  ]\n}\n\nConteúdo de cada bloco:\n- \"Visão geral\": a primeira frase é a tendência geral do solo (melhorando, piorando ou estável) ou, se houver menos de 2 datas, a informação de que se trata de variabilidade entre amostras e não de evolução. Em seguida, contextualize a área (nome, cultura, período coberto, número de amostras) e, se for o caso, informe que não há dados físicos disponíveis.\n- \"Acidez e saturação por bases\": cobre as categorias de acidez e correção e de capacidade de troca e bases.\n- \"Macro e micronutrientes\": cobre as duas categorias de nutrientes, priorizando os parâmetros de maior desvio ou maior variação.\n- \"Matéria orgânica\": cobre MO e Prem.\n\nRegras de conteúdo:\n\n- Cada \"texto\" tem de 3 a 5 frases corridas, sem negrito, bullets, emojis ou quebras de linha.\n- A primeira frase de cada texto é a conclusão do bloco: quem ler só ela deve entender a situação.\n- O nome da área ou setor é citado uma única vez em toda a resposta, na primeira frase do bloco \"Visão geral\", exatamente como vem no payload.\n- Datas no formato DD/MM/AAAA.\n- Ao descrever evolução, mostre valor inicial, valor final e variação apenas dos 2 ou 3 parâmetros mais relevantes de cada bloco, e explique termos técnicos em poucas palavras.\n- Arredonde os números (27%, não 26,84%; pH 4,5, não 4,53).\n- Se houver mais de uma amostra citada lado a lado, identifique cada valor pelo nome da amostra.\n- Não encerre nenhum bloco com frase de resumo ou conclusão que repita o que já foi dito.\n- Se um bloco não tiver dados no payload, use \"Sem dados registrados para esta área.\" como texto desse bloco.\n- Não repita o JSON recebido. Não invente dados, valores ou amostras que não estão no payload."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3488,
+        1728
+      ],
+      "id": "f301a0d7-f000-4c53-853c-130bfa1357b5",
+      "name": "Soil Anlysis History",
+      "retryOnFail": true,
+      "waitBetweenTries": 100,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "errorType": "errorObject",
+        "errorObject": "={\n  \"errorMessage\": \"{{ $json.error }}\",\n  \"field\": \"{{ $('Start').item.json.field }}\",\n  \"executionId\": \"{{ $('Start').item.json.executionId }}\",\n  \"webHook\": \"{{ $('Start').item.json.webHook }}\"\n\n} "
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        3392,
+        2816
+      ],
+      "id": "67da8929-c30e-47c3-917a-5c750054f8b3",
+      "name": "Stop and Error3"
+    },
+    {
+      "parameters": {
+        "errorType": "errorObject",
+        "errorObject": "={\n  \"errorMessage\": \"Não foi identificado o tipo de documento a ser analisado.\",\n  \"field\": \"noMatches\",\n  \"executionId\": \"{{ $('Start').item.json.executionId }}\",\n  \"webHook\": \"{{ $('Start').item.json.webHook }}\"\n\n} "
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2480,
+        2848
+      ],
+      "id": "edd2324b-a05e-4d40-a452-bd0e8c9d1afa",
+      "name": "Stop and Error12"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * n8n Code Node — Preparação de Payload Enxuto para IA (LLM) — formato novo do backend\n *\n * Entrada (item único):\n *   { json: { field, value: { soilAnalyses, fertilizerPlans, plantAdvices }, webHook, executionId } }\n *\n * Saída (item único):\n *   { llmContext: { property, sector, culture, soilAnalysis, soilAnalysisHistory,\n *                   fertilizerPlans, plantAdvices, dataWarnings }, _flowControl }\n *\n * O que mudou em relação à versão anterior:\n *  - soilAnalyses.values agora são números puros; as unidades vêm em originalValues\n *    ({ value, unit, normalizedValue, normalizedUnit }). O nó junta os dois.\n *  - \"conversions\" só aparece quando houve conversão de verdade.\n *  - Toda análise leva \"id\", para cruzar com fertilizerPlans.soilAnalysisId e\n *    plantAdvices.soilAnalysisId.\n *  - fertilizerPlans: saldo agregado por mês (era por semana), referência à recomendação\n *    de corretivo (plantingAdvice), florada, modo de aplicação e pacote de produtos.\n *  - dataWarnings: lista o que veio vazio/inconsistente da API, para o agente não\n *    interpretar \"dado faltando\" como \"nada foi feito\".\n *  - Campo sem valor = \"ausente\" em todo lugar (não há mais mistura com null).\n */\ntry {\n  const inputItem = $input.first();\n  if (!inputItem || !inputItem.json) {\n    return [{ json: { error: \"No input item received.\" } }];\n  }\n\n  const ABSENT = \"ausente\";\n  const INCLUDE_PRODUCT_PACK = true; // false = não envia o pacote de produtos do plano\n\n  const webHook = inputItem.json.webHook || ABSENT;\n  const executionId = inputItem.json.executionId || ABSENT;\n  const _flowControl = { webHook, executionId };\n\n  const rawValue = inputItem.json.value;\n  if (!rawValue || typeof rawValue !== \"object\") {\n    return [{ json: { error: \"Missing or invalid 'value' in payload.\" } }];\n  }\n\n  const warnings = [];\n\n  // ===================================================================\n  // 1. soilAnalyses — 1ª e última de cada ano + análise de referência\n  // ===================================================================\n  const rawList = toArray(rawValue.soilAnalyses).filter(\n    (a) => a && typeof a === \"object\" && Object.keys(a).length > 0\n  );\n  if (rawList.length === 0) {\n    return [{ json: { error: \"Missing or invalid 'soilAnalyses' in payload.\" } }];\n  }\n\n  const { selected, undatedCount } = selectFirstLastPerYear(rawList);\n  if (selected.length > 0 && undatedCount > 0) {\n    warnings.push(`${undatedCount} análise(s) de solo sem data válida (sampledAt) foram ignoradas.`);\n  }\n\n  // Fallback: nenhuma análise com data válida -> usa a primeira recebida\n  const finalSelection = selected.length > 0 ? selected : [{ raw: rawList[0], year: null }];\n  const referenceRaw = finalSelection[finalSelection.length - 1].raw; // a mais recente\n  const historyEntries = finalSelection.slice(0, -1);\n\n  const sector = buildSector(referenceRaw, ABSENT);\n  const culture = referenceRaw.area?.culture || ABSENT;\n  const property = {\n    name: referenceRaw.prop?.name || ABSENT,\n    state: referenceRaw.prop?.state || ABSENT,\n    area: referenceRaw.area?.name || ABSENT,\n  };\n\n  const soilAnalysis = buildSoilAnalysis(referenceRaw, ABSENT);\n  const historyResult = historyEntries.map((e) => ({ year: e.year ?? ABSENT, ...buildSoilAnalysis(e.raw, ABSENT) }));\n  const soilAnalysisHistory = historyResult.length > 0 ? historyResult : ABSENT;\n\n  const knownSoilIds = new Set(rawList.map((a) => a._id).filter(Boolean));\n\n  // ===================================================================\n  // 2. plantAdvices — recomendações de corretivo (calagem/gessagem/adubação)\n  // ===================================================================\n  const seenIds = new Set();\n  const plantAdvices = toArray(rawValue.plantAdvices)\n    .filter((adv) => {\n      if (!adv || typeof adv !== \"object\") return false;\n      if (!adv._id) return true;\n      if (seenIds.has(adv._id)) return false;\n      seenIds.add(adv._id);\n      return true;\n    })\n    .map((adv) => {\n      // Parâmetros com que a dose de calagem foi de fato calculada (metadatas)\n      const calcMeta = toArray(adv.metadatas).find((m) => isObj(m) && m.resource === \"calcularCalagem\")?.meta;\n      if (adv.calagem && isObj(calcMeta) && calcMeta.metodo && adv.calagem.metodo && calcMeta.metodo !== adv.calagem.metodo) {\n        warnings.push(\n          `Recomendação \"${adv.name || adv._id}\": o método de calagem diverge entre o cadastro (${adv.calagem.metodo}) e o cálculo registrado (${calcMeta.metodo}).`\n        );\n      }\n      const hasAdubacao = isObj(adv.adubacao) && Array.isArray(adv.adubacao.products) && adv.adubacao.products.length > 0;\n      return {\n      id: adv._id || ABSENT,\n      name: adv.name || ABSENT,\n      soilAnalysisId: refId(adv.soilAnalysis) || ABSENT,\n      note: adv.note || ABSENT,\n      calagem: adv.calagem\n        ? {\n            metodo: adv.calagem.metodo || ABSENT,\n            metodoValue: adv.calagem.metodoValue ?? ABSENT,\n            product: productLabel(adv.calagem.product) || ABSENT,\n            dose: adv.calagem.dose ?? ABSENT,\n            doseMax: calcMeta?.doseMax ?? ABSENT,\n            forma: adv.calagem.forma || ABSENT,\n            formaValue: adv.calagem.formaValue ?? ABSENT,\n            formaAplicacao: adv.formasAplicacao?.[adv.calagem.forma] ?? calcMeta?.formaAplicacao ?? ABSENT,\n            CaO: adv.calagem.CaO ?? ABSENT,\n            MgO: adv.calagem.MgO ?? ABSENT,\n          }\n        : ABSENT,\n      gessagem: adv.gessagem\n        ? {\n            product: productLabel(adv.gessagem.product) || ABSENT,\n            dose: adv.gessagem.dose ?? ABSENT,\n            forma: adv.gessagem.forma || ABSENT,\n            formaValue: adv.gessagem.formaValue ?? ABSENT,\n            interpretacao: adv.gessagem.interpretacao || ABSENT,\n            CaO: adv.gessagem.CaO ?? ABSENT,\n            S: adv.gessagem.S ?? ABSENT,\n          }\n        : ABSENT,\n      // adubacao com lista de produtos vazia = não há adubação na recomendação\n      adubacao: hasAdubacao\n        ? {\n            forma: adv.adubacao.forma || ABSENT,\n            products: adv.adubacao.products.map((p) => ({\n              name: productLabel(p.product) || ABSENT,\n              dose: p.dose ?? ABSENT,\n              formaValue: p.formaValue ?? ABSENT,\n              N: p.N ?? ABSENT,\n              P2O5: p.P2O5 ?? ABSENT,\n              K2O: p.K2O ?? ABSENT,\n            })),\n          }\n        : ABSENT,\n      projectedResult: isObj(adv.resultado) && Object.keys(adv.resultado).length > 0 ? adv.resultado : ABSENT,\n      };\n    });\n\n  const adviceIds = new Set(plantAdvices.map((a) => a.id));\n\n  if (plantAdvices.length === 0) {\n    warnings.push(\"plantAdvices veio vazio: nenhuma recomendação de corretivo (calagem/gessagem/adubação) foi recebida.\");\n  }\n  for (const a of rawList) {\n    if (a.linkedToAdvice === true && !plantAdvices.some((adv) => adv.soilAnalysisId === a._id)) {\n      warnings.push(\n        `A análise \"${a.name || a._id}\" está marcada como vinculada a uma recomendação (linkedToAdvice), mas essa recomendação não veio em plantAdvices.`\n      );\n    }\n  }\n\n  // ===================================================================\n  // 3. fertilizerPlans — visão agregada do plano de manutenção\n  // ===================================================================\n  const NUTRIENT_ORDER = [\"N\", \"P2O5\", \"K2O\", \"Ca\", \"Mg\", \"S\", \"B\", \"Cu\", \"Fe\", \"Mn\", \"Mo\", \"Zn\"];\n  const KNOWN_NUTRIENTS = new Set([...NUTRIENT_ORDER, \"CaO\", \"MgO\"]);\n\n  const fertilizerPlans = toArray(rawValue.fertilizerPlans)\n    .filter((rec) => rec && typeof rec === \"object\")\n    .map((rec) => {\n      const label = rec.name || rec._id || \"sem nome\";\n\n      // --- Demanda anual: só chaves que são nutrientes de verdade ---\n      const annualDemand = {};\n      const invalidKeys = [];\n      for (const [key, value] of Object.entries(isObj(rec.demandAnnual) ? rec.demandAnnual : {})) {\n        const v = isObj(value) ? value.normalizedValue ?? value.value : value;\n        if (!KNOWN_NUTRIENTS.has(key)) invalidKeys.push(`${key}=${JSON.stringify(v)}`);\n        else if (v !== undefined && v !== null) annualDemand[key] = v;\n      }\n      if (invalidKeys.length > 0) {\n        warnings.push(\n          `Plano \"${label}\": demandAnnual veio com chave(s) inválida(s) (${invalidKeys.join(\", \")}); não dá para saber a qual nutriente o valor pertence.`\n        );\n      }\n      if (Object.keys(annualDemand).length === 0 && invalidKeys.length === 0) {\n        warnings.push(`Plano \"${label}\": sem demanda anual por nutriente.`);\n      }\n\n      // --- Saldo demanda x aplicado, agregado por mês ---\n      const balance = buildMonthlyBalance(rec.nutrientBalance, Object.keys(annualDemand), NUTRIENT_ORDER);\n      if (balance.inferredNames) {\n        warnings.push(\n          `Plano \"${label}\": os nutrientes do saldo foram identificados pela posição no array (${balance.names.join(\", \")}), não por nome.`\n        );\n      }\n      if (Array.isArray(rec.nutrientBalance) && rec.nutrientBalance.length > 0 && balance.months.length === 0) {\n        warnings.push(\n          `Plano \"${label}\": nutrientBalance tem ${rec.nutrientBalance.length} períodos, todos com demanda e aplicação zeradas.`\n        );\n      }\n      if (Array.isArray(rec.fertilizations) && rec.fertilizations.length === 0) {\n        warnings.push(`Plano \"${label}\": nenhuma fertilização registrada como aplicada.`);\n      }\n\n      // --- Vínculos ---\n      const soilAnalysisId = refId(rec.soilAnalysis);\n      if (soilAnalysisId && !knownSoilIds.has(soilAnalysisId)) {\n        warnings.push(`Plano \"${label}\": a análise de solo em que ele se baseia (${soilAnalysisId}) não veio no payload.`);\n      }\n\n      let correctiveAdvice = ABSENT;\n      if (isObj(rec.plantingAdvice)) {\n        const advId = rec.plantingAdvice._id || ABSENT;\n        const advSoilId = refId(rec.plantingAdvice.soilAnalysis);\n        correctiveAdvice = {\n          id: advId,\n          name: rec.plantingAdvice.name || ABSENT,\n          soilAnalysisId: advSoilId || ABSENT,\n        };\n        if (!adviceIds.has(advId)) {\n          warnings.push(\n            `Plano \"${label}\": referencia a recomendação de corretivo \"${correctiveAdvice.name}\", mas o conteúdo dela (doses de calagem/gessagem) não veio em plantAdvices.`\n          );\n        }\n        if (advSoilId && !knownSoilIds.has(advSoilId)) {\n          warnings.push(\n            `A recomendação \"${correctiveAdvice.name}\" foi feita sobre outra análise de solo (${advSoilId}), que não veio no payload.`\n          );\n        }\n      }\n\n      // --- Modo de aplicação (vem em generatedRecommendations) ---\n      const gen = toArray(rec.generatedRecommendations).find(isObj);\n      const application = gen\n        ? { method: gen.method || ABSENT, irrigationType: gen.irrigationType || ABSENT }\n        : ABSENT;\n\n      const plan = {\n        name: rec.name || ABSENT,\n        soilAnalysisId: soilAnalysisId || ABSENT,\n        cropStage: rec.cropStage || ABSENT,\n        productivity: rec.productivity ?? ABSENT,\n        startingPeriod: rec.startingPeriod || ABSENT,\n        floweringDate: rec.floweringDate || ABSENT,\n        parcelling: rec.parcelling?.name || ABSENT,\n        application,\n        correctiveAdvice,\n        nutrients: {\n          annualDemand: Object.keys(annualDemand).length > 0 ? annualDemand : ABSENT,\n          monthlyBalance: balance.months.length > 0 ? balance.months : ABSENT,\n        },\n      };\n\n      if (INCLUDE_PRODUCT_PACK) {\n        plan.productPack = buildProductPack(rec.generatedCombo, ABSENT);\n      }\n      return plan;\n    });\n\n  if (fertilizerPlans.length === 0) {\n    warnings.push(\"fertilizerPlans veio vazio: nenhum plano de manutenção foi recebido.\");\n  }\n\n  return [\n    {\n      json: {\n        llmContext: {\n          property,\n          sector,\n          culture,\n          soilAnalysis,\n          soilAnalysisHistory,\n          fertilizerPlans,\n          plantAdvices,\n          dataWarnings: warnings.length > 0 ? [...new Set(warnings)] : ABSENT,\n        },\n        _flowControl,\n      },\n    },\n  ];\n} catch (err) {\n  const message = err instanceof Error ? err.message : String(err);\n  return [{ json: { error: message } }];\n}\n\n// ===== FUNÇÕES AUXILIARES =====\n\nfunction toArray(v) {\n  return Array.isArray(v) ? v : v ? [v] : [];\n}\n\nfunction isObj(v) {\n  return v !== null && typeof v === \"object\" && !Array.isArray(v);\n}\n\n// Referência pode vir como string (id) ou objeto populado ({ _id, ... })\nfunction refId(ref) {\n  if (typeof ref === \"string\") return ref;\n  return isObj(ref) ? ref._id || null : null;\n}\n\n// Produto pode vir como objeto populado ({ name }) ou só o id\nfunction productLabel(product) {\n  if (isObj(product)) return product.name || product._id || null;\n  return typeof product === \"string\" ? product : null;\n}\n\nfunction round(n, decimals = 4) {\n  const f = 10 ** decimals;\n  return Math.round(n * f) / f;\n}\n\n// Primeira e última análise de cada ano (por sampledAt), em ordem cronológica.\nfunction selectFirstLastPerYear(list) {\n  const dated = list\n    .map((raw) => ({ raw, t: Date.parse(raw.sampledAt) }))\n    .filter((x) => !Number.isNaN(x.t))\n    .sort((a, b) => a.t - b.t);\n\n  const byYear = new Map();\n  for (const item of dated) {\n    const year = new Date(item.t).getUTCFullYear();\n    if (!byYear.has(year)) byYear.set(year, { first: item, last: item });\n    else byYear.get(year).last = item;\n  }\n\n  const selected = [];\n  for (const [year, { first, last }] of byYear) {\n    selected.push({ raw: first.raw, year });\n    if (last !== first) selected.push({ raw: last.raw, year });\n  }\n  return { selected, undatedCount: list.length - dated.length };\n}\n\nfunction buildSector(rawSoilAnalysis, ABSENT) {\n  const s = (Array.isArray(rawSoilAnalysis.sectors) && rawSoilAnalysis.sectors[0]) || {};\n  return {\n    name: s.name || ABSENT,\n    size: s.size ?? ABSENT,\n    plantingDate: s.plantingDate ? String(s.plantingDate).split(\"T\")[0] : ABSENT,\n    amountOfPlants: s.amountOfPlants ?? ABSENT,\n    plantSpacing: s.plantSpacing ?? ABSENT,\n    lineSpacing: s.lineSpacing ?? ABSENT,\n  };\n}\n\n// Junta values (números) com originalValues (unidades). Aceita também o formato\n// antigo, em que values[param] já era { value, unit, normalizedValue, normalizedUnit }.\nfunction buildSoilAnalysis(raw, ABSENT) {\n  const NO_UNIT = new Set([\"ph\", \"ratio\", \"\"]); // \"5.2 pH\" e \"2.12 ratio\" são ruído\n  const flat = isObj(raw.values) ? raw.values : {};\n  const detailed = isObj(raw.originalValues) ? raw.originalValues : {};\n\n  const values = {};\n  const conversions = {};\n  const params = new Set([...Object.keys(flat), ...Object.keys(detailed)]);\n\n  for (const param of params) {\n    const info = isObj(flat[param]) ? flat[param] : isObj(detailed[param]) ? detailed[param] : {};\n    const plain = isObj(flat[param]) ? undefined : flat[param];\n\n    const val = plain ?? info.normalizedValue ?? info.value;\n    if (val === undefined || val === null || val === \"\") continue;\n\n    const unit = info.normalizedUnit ?? info.unit ?? \"\";\n    values[param] = NO_UNIT.has(String(unit).toLowerCase()) ? `${val}` : `${val} ${unit}`;\n\n    // Só registra conversão quando o laudo original difere do valor normalizado\n    const hasOriginal = info.value !== undefined && info.value !== null;\n    const valueChanged = hasOriginal && info.normalizedValue != null && info.value !== info.normalizedValue;\n    const unitChanged = hasOriginal && info.unit && info.normalizedUnit && info.unit !== info.normalizedUnit;\n    if (valueChanged || unitChanged) {\n      conversions[param] = `original: ${info.value} ${info.unit ?? \"\"}`.trim();\n    }\n  }\n\n  return {\n    id: raw._id || ABSENT,\n    name: raw.name || ABSENT,\n    sampledAt: raw.sampledAt ? String(raw.sampledAt).split(\"T\")[0] : ABSENT,\n    note: raw.note ? String(raw.note).replace(/\\s+/g, \" \").trim() : ABSENT,\n    values: Object.keys(values).length > 0 ? values : ABSENT,\n    conversions: Object.keys(conversions).length > 0 ? conversions : ABSENT,\n  };\n}\n\n// Agrega nutrientBalance (semanal) por mês: { period: \"2026/10\", nutrients: { N: { demand, applied, balance } } }\n// Meses sem demanda nem aplicação ficam de fora.\n// Nomes dos nutrientes: chaves de demandAnnual se baterem com o tamanho dos arrays;\n// senão, ordem padrão (12 posições, ou 11 sem Mo) — nesse caso inferredNames = true.\nfunction buildMonthlyBalance(nutrientBalance, annualKeys, NUTRIENT_ORDER) {\n  const items = (Array.isArray(nutrientBalance) ? nutrientBalance : []).filter(isObj);\n  const width = items.reduce(\n    (m, it) => Math.max(m, Array.isArray(it.demand) ? it.demand.length : 0, Array.isArray(it.applied) ? it.applied.length : 0),\n    0\n  );\n\n  let names;\n  let positional = false;\n  if (annualKeys.length > 0 && annualKeys.length === width) {\n    names = annualKeys;\n  } else {\n    positional = true;\n    if (width === NUTRIENT_ORDER.length) names = NUTRIENT_ORDER;\n    else if (width === NUTRIENT_ORDER.length - 1) names = NUTRIENT_ORDER.filter((n) => n !== \"Mo\");\n    else names = Array.from({ length: width }, (_, i) => NUTRIENT_ORDER[i] || `nutriente_${i + 1}`);\n  }\n\n  const byMonth = new Map();\n  for (const item of items) {\n    const month = item.period ? String(item.period).slice(0, 7) : \"sem período\";\n    if (!byMonth.has(month)) byMonth.set(month, {});\n    const acc = byMonth.get(month);\n    const demand = Array.isArray(item.demand) ? item.demand : [];\n    const applied = Array.isArray(item.applied) ? item.applied : [];\n\n    names.forEach((name, i) => {\n      const d = Number(demand[i]) || 0;\n      const a = Number(applied[i]) || 0;\n      if (d === 0 && a === 0) return;\n      if (!acc[name]) acc[name] = { demand: 0, applied: 0 };\n      acc[name].demand += d;\n      acc[name].applied += a;\n    });\n  }\n\n  const months = [];\n  for (const [period, acc] of byMonth) {\n    const nutrients = {};\n    for (const [name, { demand, applied }] of Object.entries(acc)) {\n      nutrients[name] = { demand: round(demand), applied: round(applied), balance: round(demand - applied) };\n    }\n    if (Object.keys(nutrients).length > 0) months.push({ period, nutrients });\n  }\n\n  return { months, names, inferredNames: positional && months.length > 0 };\n}\n\n// Pacote de produtos do plano: só nome + garantias diferentes de zero.\nfunction buildProductPack(generatedCombo, ABSENT) {\n  if (!isObj(generatedCombo)) return ABSENT;\n  const GUARANTEES = [\"N\", \"P2O5\", \"K2O\", \"Ca\", \"CaO\", \"Mg\", \"MgO\", \"S\", \"B\", \"Cu\", \"Fe\", \"Mn\", \"Mo\", \"Zn\", \"PRNT\"];\n\n  const products = toArray(generatedCombo.products)\n    .filter(isObj)\n    .map((p) => {\n      const guarantees = {};\n      for (const g of GUARANTEES) {\n        if (typeof p[g] === \"number\" && p[g] !== 0) guarantees[g] = p[g];\n      }\n      return {\n        name: p.name || ABSENT,\n        guaranteesPct: Object.keys(guarantees).length > 0 ? guarantees : ABSENT,\n        applicationMethods:\n          Array.isArray(p.applicationMethods) && p.applicationMethods.length > 0 ? p.applicationMethods : ABSENT,\n      };\n    });\n\n  return {\n    name: generatedCombo.selection?.name || ABSENT,\n    products: products.length > 0 ? products : ABSENT,\n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3008,
+        2240
+      ],
+      "id": "2c8a5ceb-bf06-4aa1-85eb-86d743c63d2e",
+      "name": "normalize",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "errorType": "errorObject",
+        "errorObject": "={\n  \"errorMessage\": \"{{ $json.error }}\",\n  \"field\": \"{{ $('Start').item.json.field }}\",\n  \"executionId\": \"{{ $('Start').item.json.executionId }}\",\n  \"webHook\": \"{{ $('Start').item.json.webHook }}\"\n\n} "
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        3280,
+        2464
+      ],
+      "id": "befaef4b-69af-4cc9-afb8-7798b8a97799",
+      "name": "Stop and Error1"
+    },
+    {
+      "parameters": {
+        "errorType": "errorObject",
+        "errorObject": "={\n  \"errorMessage\": \"{{ $json.error }}\",\n  \"field\": \"{{ $json.field }}\",\n  \"executionId\": \"{{ $('Start').item.json.executionId }}\",\n  \"webHook\": \"{{ $('Start').item.json.webHook }}\"\n\n} "
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        3792,
+        1904
+      ],
+      "id": "f9b217fe-3b96-4f6d-965a-c68573d9bc90",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3328,
+        3280
+      ],
+      "id": "bcd5b353-08e8-4aa2-8df0-d389796954e7",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "0LtvSfR1BUp6aWpc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Aqui estão os dados do setor para análise:\nSector:\n\n## SETOR\n{{setor_nome}} | Cultura: {{cultura}} | Idade/Fase: {{idade_fase}}\n\n## HISTÓRICO (cronológico)\n{{historico_blocos}}\n\n## FAIXAS DE REFERÊNCIA FOLIARES\n{{faixas_referencia}}\n\n\n{{JSON.stringify($json.value) }}}\n\nEscreva o relatório conforme as instruções.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Você é um agrônomo consultor especialista em nutrição mineral de plantas e interpretação de análises foliares.\n\nSua tarefa é avaliar como o parcelamento de nutrientes aplicado ao longo do ano influenciou os resultados das análises foliares de um setor, verificando se as aplicações estão sendo bem convertidas (absorvidas pela planta) e identificando riscos e acertos.\n\n## DADOS QUE VOCÊ RECEBERÁ\n\n1. Setor: identificação, cultura e demais informações disponíveis.\n2. Histórico em blocos cronológicos. Cada bloco contém:\n   - a sequência de aplicações do parcelamento (data/mês, nutriente, fonte, dose, via de aplicação);\n   - o resultado da análise foliar realizada APÓS essa sequência de aplicações.\n   Cada análise foliar deve ser interpretada como o resultado das aplicações do seu bloco e, em parte, dos blocos anteriores (efeito acumulado).\n3. Faixas de referência foliares por nutriente (quando fornecidas).\n\n## COMO VOCÊ DEVE RACIOCINAR\n\nSiga estas etapas internamente antes de escrever:\n\n1. Leia os blocos em ordem cronológica e, para cada análise foliar, identifique quais nutrientes foram aplicados na sequência anterior a ela, em que doses e quando.\n2. Considere o tempo de resposta. O teor foliar responde com defasagem e depende da fase fenológica, da via de aplicação (foliar responde mais rápido que solo ou fertirrigação) e do intervalo entre a última aplicação e a coleta. Cite essa limitação quando afetar a conclusão.\n3. Avalie a conversão de cada nutriente, comparando o que foi aplicado no bloco com a variação do teor foliar em relação à análise anterior e a posição em relação à faixa de referência.\n   - Aplicou e o teor subiu ou se manteve adequado: conversão boa.\n   - Aplicou e o teor não mudou ou caiu: conversão baixa (considere antagonismos, diluição por crescimento, extração pela cultura, perdas, pH do solo e fase fenológica).\n4. Detecte supercorreção: teor acima do máximo da faixa após aplicações, ou aplicação mantida mesmo com o nutriente já adequado ou alto na análise anterior.\n5. Detecte risco: teor em queda ao longo dos blocos, deficiência recorrente, excesso se aproximando do limite, desbalanço entre nutrientes (relações como N/K, Ca/Mg/K, antagonismos e sinergismos conhecidos).\n6. Identifique pontos positivos: blocos em que as aplicações levaram o nutriente à faixa adequada ou o mantiveram nela, com boa eficiência.\n7. Nutrientes que aparecem na análise foliar mas não foram aplicados no bloco também devem ser comentados, pois podem indicar supercorreção de um nutriente causando deficiência de outro.\n\n## REGRAS IMPORTANTES\n\n- Use somente os dados fornecidos. Nunca invente valores, datas, doses ou resultados.\n- Se as faixas de referência não forem fornecidas, use referências gerais da literatura para a cultura e informe claramente que são referências gerais, reduzindo a confiança das conclusões.\n- Se faltar dado (bloco sem análise, nutriente sem dose, nutriente sem faixa), diga isso explicitamente.\n- Distinga correlação de causa: o teor foliar também é influenciado por chuva, irrigação, pH, produtividade, fase da cultura e época de coleta.\n- Seja específico: sempre cite mês/data, nutriente, valores e a faixa de referência que sustentam cada afirmação.\n- Não recomende doses exatas. Sugira apenas direções de ajuste (reduzir, manter, antecipar, reavaliar) e deixe a decisão final ao responsável técnico.\n\n## FORMATO E ESTILO DA RESPOSTA\n\nEscreva um relatório técnico em markdown, em português do Brasil, com texto corrido e dissertativo, como um agrônomo explicaria a outro profissional. Use parágrafos bem construídos que expliquem o raciocínio. Evite listas e tabelas, a menos que ajudem a mostrar números de forma compacta, e nunca responda em JSON.\n\nUse exatamente esta estrutura de títulos:\n\n### 1. Visão geral\nUm ou dois parágrafos com o desempenho geral do parcelamento e a avaliação global da conversão (boa, moderada ou baixa), com a justificativa.\n\n### 2. Evolução por período\nUm subtítulo (####) para cada bloco, descrevendo o que foi aplicado, o que a análise foliar mostrou depois e como isso se compara ao bloco anterior.\n\n### 3. Análise da conversão por nutriente\nUm subtítulo (####) para cada nutriente relevante, avaliando a conversão ao longo de todo o período (boa, moderada ou baixa), com as possíveis explicações.\n\n### 4. Riscos e supercorreções\nDescreva os momentos em que as aplicações começaram a apresentar risco ou geraram supercorreção. Para cada caso, informe o período, o nutriente, as evidências numéricas, o que provavelmente está acontecendo, a gravidade (alta, média ou baixa) e a direção de ajuste sugerida. Se não houver nenhum, diga isso claramente.\n\n### 5. Pontos positivos\nDescreva os períodos e nutrientes em que as aplicações funcionaram muito bem, com as evidências.\n\n### 6. Limitações da análise\nUm parágrafo curto com os dados ausentes, o tempo de resposta do teor foliar e outros fatores que reduzem a confiança.\n\n### 7. Conclusão e direcionamentos\nUm parágrafo final com os principais pontos de atenção e as direções de ajuste para as próximas aplicações, lembrando que a decisão final é do responsável técnico.\n\nUse **negrito** apenas para destacar nutrientes, datas e valores-chave. Não repita os dados brutos de entrada; interprete-os."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3328,
+        3104
+      ],
+      "id": "1a43a7e3-4f89-4f00-a8c3-8fed2f45ebbb",
+      "name": "Leaf Tissue1",
+      "retryOnFail": true,
+      "waitBetweenTries": 100,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "errorType": "errorObject",
+        "errorObject": "={\n  \"errorMessage\": \"{{ $json.error }}\",\n  \"field\": \"{{ $('Start').item.json.field }}\",\n  \"executionId\": \"{{ $('Start').item.json.executionId }}\",\n  \"webHook\": \"{{ $('Start').item.json.webHook }}\"\n\n} "
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        3648,
+        3296
+      ],
+      "id": "7b125d5c-3106-47fa-8514-43569785662c",
+      "name": "Stop and Error4"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * n8n Code Node — Reduz soilAnalysisHistory.samples\n * Mantém, por ano, apenas a PRIMEIRA e a ÚLTIMA data de coleta.\n * Saída ordenada cronologicamente, mesmo formato da entrada.\n */\ntry {\n  const inputItem = $input.first();\n  if (!inputItem || !inputItem.json) {\n    return [{ json: { error: \"No input item received.\" } }];\n  }\n\n  // Se true, quando há várias amostras na MESMA data (primeira = última),\n  // mantém todas elas. Se false, mantém só uma por data.\n  const KEEP_ALL_ON_SAME_DATE = false;\n\n  const json = inputItem.json;\n  const value = json.value;\n\n  if (!value || typeof value !== \"object\" || !Array.isArray(value.samples)) {\n    return [{ json }]; // nada a filtrar, segue o fluxo sem alterar\n  }\n\n  // 1) Datas válidas + ordenação cronológica (estável: empate mantém ordem original)\n  const dated = value.samples\n    .map((sample, idx) => ({ sample, idx, t: Date.parse(sample?.sampledAt) }))\n    .filter((x) => !Number.isNaN(x.t))\n    .sort((a, b) => a.t - b.t || a.idx - b.idx);\n\n  if (dated.length === 0) {\n    return [{ json }]; // nenhuma data válida, mantém como veio\n  }\n\n  // 2) Agrupa por ano e guarda o menor e o maior dia de cada ano\n  const byYear = new Map();\n  for (const item of dated) {\n    const year = new Date(item.t).getUTCFullYear();\n    if (!byYear.has(year)) byYear.set(year, []);\n    byYear.get(year).push(item);\n  }\n\n  const selected = [];\n  for (const [, items] of byYear) {\n    const firstT = items[0].t;\n    const lastT = items[items.length - 1].t;\n\n    if (firstT === lastT) {\n      // todas na mesma data\n      if (KEEP_ALL_ON_SAME_DATE) selected.push(...items);\n      else selected.push(items[0]);\n    } else {\n      selected.push(items[0]); // primeira do ano\n      selected.push(items[items.length - 1]); // última do ano\n    }\n  }\n\n  selected.sort((a, b) => a.t - b.t || a.idx - b.idx);\n  const samples = selected.map((x) => x.sample);\n\n  // 3) Recalcula metadados\n  const dates = samples.map((s) => String(s.sampledAt).split(\"T\")[0]);\n  const distinctDates = new Set(dates).size;\n  const sortedDates = [...dates].sort();\n\n  const newValue = {\n    ...value,\n    totalSamplesOriginal: value.totalSamples ?? value.samples.length,\n    totalSamples: samples.length,\n    distinctDates,\n    period: { start: sortedDates[0], end: sortedDates[sortedDates.length - 1] },\n    samples,\n  };\n\n  return [{ json: { ...json, value: newValue } }];\n} catch (err) {\n  const message = err instanceof Error ? err.message : String(err);\n  return [{ json: { error: message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        1728
+      ],
+      "id": "82c74f48-217f-46a3-808a-cf6ca52f6f0d",
+      "name": "Filtering"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"blocos\": [\n    { \"titulo\": \"Diagnóstico do solo\", \"texto\": \"...\" },\n    { \"titulo\": \"Recomendações de correção\", \"texto\": \"...\" },\n    { \"titulo\": \"Manutenção nutricional\", \"texto\": \"...\" }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3568,
+        2432
+      ],
+      "id": "79b46265-27c8-46d7-b1fd-567fa3c727de",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"blocos\": [\n    { \"titulo\": \"Diagnóstico do solo\", \"texto\": \"...\" },\n    { \"titulo\": \"Recomendações de correção\", \"texto\": \"...\" },\n    { \"titulo\": \"Manutenção nutricional\", \"texto\": \"...\" }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3632,
+        1984
+      ],
+      "id": "7bc1cf5b-80b9-4e2e-8d28-3d8ae6e7b47c",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Start').item.json.webHook }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "error"
+            },
+            {
+              "name": "executionId",
+              "value": "={{ $('Start').item.json.executionId }}"
+            },
+            {
+              "name": "type",
+              "value": "={{ $('Start').item.json.field }}"
+            },
+            {
+              "name": "errorMessage",
+              "value": "={{ $json.error || $json.message || 'Erro na análise' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4480,
+        2960
+      ],
+      "id": "11a49c81-2534-4410-b4fe-5f5f53c30259",
+      "name": "Notify Error",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "maxTries": 5,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"blocos\": [\n    { \"titulo\": \"Diagnóstico do solo\", \"texto\": \"...\" },\n    { \"titulo\": \"Recomendações de correção\", \"texto\": \"...\" },\n    { \"titulo\": \"Manutenção nutricional\", \"texto\": \"...\" }\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3792,
+        2832
+      ],
+      "id": "87d78a56-242a-49f6-a571-9e01b51cd7d7",
+      "name": "Structured Output Parser2"
+    }
+  ],
+  "connections": {
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Filtering",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "normalize",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "normalizeFoliar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Leaf Tissue1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Stop and Error12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Soil Anlysis History",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "canResend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "canResend": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model8": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Soil Analysis",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Soil Analysis": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Stop and Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Leaf Tissue",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "normalizeFoliar": {
+      "main": [
+        [
+          {
+            "node": "Leaf Tissue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Stop and Error3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leaf Tissue": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Stop and Error3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Soil Anlysis History": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "normalize": {
+      "main": [
+        [
+          {
+            "node": "Soil Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Stop and Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Leaf Tissue1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leaf Tissue1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Stop and Error4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtering": {
+      "main": [
+        [
+          {
+            "node": "Soil Anlysis History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Soil Analysis",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Soil Anlysis History",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Leaf Tissue",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "pZBeGBWUcKZe09SWJRapk",
+    "binaryMode": "separate"
+  },
+  "pinData": {},
+  "tags": []
+}
