@@ -1,0 +1,23 @@
+# T-008 — MongoDB MCP Server oficial, somente leitura, exposto via HTTP para o n8n (homologacao/dev).
+# Nunca usar usuario root. URI apenas via variavel de ambiente (arquivo .env fora do Git).
+services:
+  mongodb-mcp-logs:
+    image: node:22-alpine
+    # Fixe a versao validada em homologacao antes de qualquer promocao (evitar @latest).
+    command: >
+      npx -y mongodb-mcp-server@${MDB_MCP_VERSION:?defina MDB_MCP_VERSION}
+      --transport http --httpHost 0.0.0.0 --httpPort 3000
+      --readOnly
+      --disabledTools export,mongodb-logs,atlas
+      --indexCheck
+      --maxTimeMS 10000
+      --telemetry disabled
+    environment:
+      MDB_MCP_CONNECTION_STRING: ${MDB_MCP_CONNECTION_STRING:?defina MDB_MCP_CONNECTION_STRING}
+    restart: unless-stopped
+    # Sem "ports": acessivel apenas na rede interna do n8n (http://mongodb-mcp-logs:3000/mcp).
+    networks: [n8n]
+networks:
+  n8n:
+    external: true
+    name: ${N8N_NETWORK:-dokploy-network}
