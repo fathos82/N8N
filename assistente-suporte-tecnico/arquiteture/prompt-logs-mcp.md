@@ -33,15 +33,13 @@ Pipeline base (altere só o `$match`):
  }},
  {"$sort": {"createdAt": -1}},
  {"$limit": 20},
+ {"$set": {
+   "h": {"$regexFind": {"input": "$log", "regex": "HTTP \\d+ em [A-Z]+ [^ ]+: (.*)$"}},
+   "u": {"$regexFind": {"input": "$log", "regex": "> (.*)$"}}
+ }},
  {"$project": {
    "_id": 0, "quando": "$createdAt", "tipo": "$logType", "status": 1, "httpStatus": 1,
-   "texto": {"$let": {
-     "vars": {
-       "h": {"$regexFind": {"input": "$log", "regex": "HTTP \\d+ em [A-Z]+ [^ ]+: (.*)$"}},
-       "u": {"$regexFind": {"input": "$log", "regex": "> (.*)$"}}
-     },
-     "in": {"$ifNull": [{"$arrayElemAt": ["$$h.captures", 0]}, {"$arrayElemAt": ["$$u.captures", 0]}, "$log"]}
-   }}
+   "motivo": "$h.captures", "detalhe": "$u.captures"
  }}
 ]
 ```
@@ -49,7 +47,8 @@ Pipeline base (altere só o `$match`):
 Regras:
 - `author` é sempre `{{userId}}`. Nunca consulte outro usuário.
 - Mantenha o `$nor` (remove sessão expirada). Remova só se o problema for de login/acesso.
-- Nunca altere o `$project`.
+- Nunca altere o `$set` nem o `$project`.
+- `texto` de cada log = primeiro item de `motivo`; se vazio, primeiro item de `detalhe`.
 - Instabilidade geral: `{"author": "system", "status": "Error"}` na mesma janela e rota, limite 5. Nunca busque `system` sem esse filtro.
 
 ## Assunto → filtro
