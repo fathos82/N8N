@@ -33,14 +33,7 @@ Pipeline base (altere só o `$match`):
  }},
  {"$sort": {"createdAt": -1}},
  {"$limit": 20},
- {"$set": {
-   "h": {"$regexFind": {"input": "$log", "regex": "HTTP \\d+ em [A-Z]+ [^ ]+: (.*)$"}},
-   "u": {"$regexFind": {"input": "$log", "regex": "> (.*)$"}}
- }},
- {"$project": {
-   "_id": 0, "quando": "$createdAt", "tipo": "$logType", "status": 1, "httpStatus": 1,
-   "motivo": "$h.captures", "detalhe": "$u.captures"
- }}
+ {"$project": {"_id": 0, "createdAt": 1, "logType": 1, "status": 1, "httpStatus": 1, "log": 1}}
 ]
 ```
 
@@ -48,8 +41,9 @@ Regras:
 - `author` é sempre `{{userId}}`. Nunca consulte outro usuário.
 - Datas sempre como `{"$date": "2026-11-22T00:00:00Z"}`, nunca string pura (string não casa com o campo Date).
 - Mantenha o `$nor` (remove sessão expirada). Remova só se o problema for de login/acesso.
-- Nunca altere o `$set` nem o `$project`.
-- `texto` de cada log = primeiro item de `motivo`; se vazio, primeiro item de `detalhe`.
+- Nunca altere o `$project` e nunca adicione campos calculados (`$set`, `$addFields`, renomear, `$substr`, `$regexFind`): o servidor recusa.
+- `texto` de cada log: extraia do campo `log` o trecho depois de `HTTP <código> em <MÉTODO> <rota>: `; se não houver, o trecho depois de `> `. Nunca copie e-mails, rotas ou IDs para `texto`.
+- Na saída, `quando` = `createdAt` e `tipo` = `logType`.
 - Instabilidade geral: `{"author": "system", "status": "Error"}` na mesma janela e rota, limite 5. Nunca busque `system` sem esse filtro.
 
 ## Assunto → filtro
