@@ -69,3 +69,6 @@ Bloqueios / próximos passos:
 4. Importar o sub-workflow, ligar `investigar_logs` numa cópia de homologação da Flora e rodar os 3 casos.
 5. Decisão de escopo: o filtro por `author` hoje depende só do prompt; para impô-lo no servidor é preciso um proxy.
 6. Segurança: o `opencode.json` local usa `root` com senha em texto puro. Trocar a senha.
+
+### TODO
+- [ ] Rever a minimização de dados do `investigar_logs`. O index check do `mongodb-mcp-server` 3.3.0 acusa COLLSCAN em qualquer pipeline com campo calculado. Por isso a projeção virou só de inclusão e o LLM recebe o `log` cru, com e-mail e rota. O e-mail só é mascarado depois, em "Validar Saida". Opções: corrigir ou atualizar o MCP, reportar o bug, usar um proxy ou desligar o indexCheck com outro limite de custo.
