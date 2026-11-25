@@ -17,7 +17,7 @@ Estados: `todo` · `in_progress` · `blocked` · `done`
 
 ## Blocked
 
-- [ ] [T-008 — Integração MCP ao backend real](T-008-integracao-practium-mcp-backend-real.md) — `blocked` (aguarda acesso ao backend e conclusão do T-007)
+- [ ] [T-008 — Integração MCP ao backend real](T-008-integracao-practium-mcp-backend-real.md) — `blocked` (entrega parcial na branch; falta MCP no ar, role/índices e userId autenticado)
 
 ## Done
 
