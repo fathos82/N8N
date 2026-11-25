@@ -72,3 +72,4 @@ Bloqueios / próximos passos:
 
 ### TODO
 - [ ] Rever a minimização de dados do `investigar_logs`. O index check do `mongodb-mcp-server` 3.3.0 acusa COLLSCAN em qualquer pipeline com campo calculado. Por isso a projeção virou só de inclusão e o LLM recebe o `log` cru, com e-mail e rota. O e-mail só é mascarado depois, em "Validar Saida". Opções: corrigir ou atualizar o MCP, reportar o bug, usar um proxy ou desligar o indexCheck com outro limite de custo.
+- [ ] **Risco (só homologação):** o `userId` da Flora vem sem validação do front pelo chat (`metadata.userId` do chat trigger, ou `userId` no corpo), lido em `extractSessionId1` e injetado no `investigar_logs` por expressão. Pode ser forjado: qualquer cliente pode mandar o id de outro usuário. Antes de produção, trocar por um token assinado validado no backend/n8n.
