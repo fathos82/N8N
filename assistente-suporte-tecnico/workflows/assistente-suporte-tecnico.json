@@ -1626,19 +1626,6 @@
     },
     {
       "parameters": {
-        "contextWindowLength": 3
-      },
-      "id": "337a910e-c5fc-4e62-bcf4-2c86f6fd15a5",
-      "name": "Simple Memory2",
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "typeVersion": 1.3,
-      "position": [
-        8608,
-        512
-      ]
-    },
-    {
-      "parameters": {
         "description": "Use the tool to think about something. It will not obtain new information or change the database, but just append the thought to the log. Use it when complex reasoning or some cache memory is needed. Only reason based on data explicitly returned by tools. If no data was returned, the only valid conclusion is to request more information from the user or escalate to `Call Suporte`."
       },
       "id": "c92b7baa-afbd-4c75-a684-8f3031512c22",
@@ -3316,17 +3303,6 @@
         ]
       ]
     },
-    "Simple Memory2": {
-      "ai_memory": [
-        [
-          {
-            "node": "Flora1",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Think1": {
       "ai_tool": [
         [
@@ -3659,7 +3635,7 @@
       "ai_memory": [
         [
           {
-            "node": "Flora",
+            "node": "Flora1",
             "type": "ai_memory",
             "index": 0
           }
