@@ -17,7 +17,7 @@ services:
     environment:
       MDB_MCP_CONNECTION_STRING: ${MDB_MCP_CONNECTION_STRING:?defina MDB_MCP_CONNECTION_STRING}
     restart: unless-stopped
-    # Sem "ports": acessivel apenas na rede interna do n8n (http://mongodb-mcp-logs:3000/mcp).
+    # Sem "ports": acessivel apenas na rede interna do n8n (http://mongodb-mcp-logs-b1huk1-mongodb-mcp-logs-1:3000/mcp).
     networks: [n8n]
 networks:
   n8n:

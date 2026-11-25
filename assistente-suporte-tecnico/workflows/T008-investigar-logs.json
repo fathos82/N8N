@@ -98,7 +98,7 @@
     },
     {
       "parameters": {
-        "endpointUrl": "http://mongodb-mcp-logs:3000/mcp",
+        "endpointUrl": "http://mongodb-mcp-logs-b1huk1-mongodb-mcp-logs-1:3000/mcp",
         "include": "selected",
         "includeTools": [
           "aggregate"

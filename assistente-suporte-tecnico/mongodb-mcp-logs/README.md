@@ -30,7 +30,7 @@ Primeira entrega do T-008: subagente de investigação de logs do Practium (some
 1. Criar índices (seção 1.1 da metodologia) em `practium.logs`.
 2. Ajustar a role `mcpLeitura` e criar/validar o usuário `mcp`.
 3. `cp .env.example .env`, preencher, `docker compose up -d` na mesma rede do n8n.
-4. Importar `workflows/T008-investigar-logs.json` no n8n, ligar credencial OpenAI, conferir `endpointUrl` (`http://mongodb-mcp-logs:3000/mcp`).
+4. Importar `workflows/T008-investigar-logs.json` no n8n, ligar credencial OpenAI, conferir `endpointUrl` (`http://mongodb-mcp-logs-b1huk1-mongodb-mcp-logs-1:3000/mcp`).
 5. Na Flora (cópia de homologação), adicionar um nó **Call n8n Workflow Tool** `investigar_logs` apontando para o sub-workflow:
    - `problema`: `$fromAI('problema', 'o que o usuário tentou fazer, onde e quando, e o erro relatado', 'string')`
    - `userId`: expressão do contexto autenticado da sessão (ex.: `{{ $('extractSessionId1').first().json.userId }}`) — **nunca** `$fromAI`.
