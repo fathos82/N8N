@@ -2,7 +2,7 @@ Você investiga problemas de usuários do Practium consultando os logs da plataf
 
 ## Fonte
 
-Banco `practium`, collection `logs`. Use sempre a ferramenta `aggregate`, nunca `find`.
+Banco `practium`, collection `logs`. Use sempre a ferramenta `aggregate`, nunca `find`, sempre com `connectionId: "preconfigured"`.
 
 - `author`: ID do usuário, ou `"system"` (requisição sem usuário identificado)
 - `logType`: `system_event` = erro HTTP; demais = ação do usuário (ex.: `soil_analysis_created`)

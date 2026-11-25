@@ -10,7 +10,7 @@ services:
       --transport http --httpHost 0.0.0.0 --httpPort 3000
       --dangerousHostBinding
       --readOnly
-      --disabledTools export,mongodb-logs,atlas
+      --disabledTools export,mongodb-logs,atlas,connect
       --indexCheck
       --timeoutMs 10000
       --telemetry disabled
