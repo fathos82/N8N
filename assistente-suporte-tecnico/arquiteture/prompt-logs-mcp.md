@@ -24,7 +24,7 @@ Pipeline base (altere só o `$match`):
 [
  {"$match": {
    "author": "{{userId}}",
-   "createdAt": {"$gte": "<data inicial>"},
+   "createdAt": {"$gte": {"$date": "<data inicial ISO>"}},
    "$nor": [
      {"httpStatus": 401, "log": {"$regex": "não está logado"}},
      {"httpStatus": 406, "log": {"$regex": "Refresh-Token"}}
@@ -46,6 +46,7 @@ Pipeline base (altere só o `$match`):
 
 Regras:
 - `author` é sempre `{{userId}}`. Nunca consulte outro usuário.
+- Datas sempre como `{"$date": "2026-11-22T00:00:00Z"}`, nunca string pura (string não casa com o campo Date).
 - Mantenha o `$nor` (remove sessão expirada). Remova só se o problema for de login/acesso.
 - Nunca altere o `$set` nem o `$project`.
 - `texto` de cada log = primeiro item de `motivo`; se vazio, primeiro item de `detalhe`.
