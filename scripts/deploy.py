@@ -31,7 +31,7 @@ load_env()
 DIR = Path(__file__).resolve().parent.parent / "assistente-suporte-tecnico" / "workflows"
 PREFIX = "[TEST] "
 # ordem importa: dependentes primeiro, agente por ultimo
-FILES = ["call-suporte.json", "hibridy-search-suport-agent.json", "assistente-suporte-tecnico.json"]
+FILES = ["T008-investigar-logs.json", "call-suporte.json", "hibridy-search-suport-agent.json", "assistente-suporte-tecnico.json"]
 DRY = "--dry-run" in sys.argv
 
 BASE = os.environ.get("N8N_URL", "").rstrip("/")
@@ -103,7 +103,7 @@ def main():
         payload = rewrite(wf, id_map)
         if DRY:
             print(f"[dry-run] {payload['name']}: {len(payload['nodes'])} nos")
-            id_map[wf["id"]] = "DRY"
+            id_map[wf.get("id", fname)] = "DRY"
             continue
         test_id = find_by_name(payload["name"])
         if test_id:
@@ -112,7 +112,7 @@ def main():
         else:
             test_id = api("POST", "/workflows", payload)["id"]
             print(f"criado {payload['name']} ({test_id})")
-        id_map[wf["id"]] = test_id
+        id_map[wf.get("id", fname)] = test_id
 
 
 main()
